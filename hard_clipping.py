@@ -15,6 +15,8 @@ def main():
     out_samples = hard_clip_symmetrical_with_moving_window(
         in_samples, threshold, window_length)
 
+    out_samples = normalize(out_samples)
+
     out_file_base = '{}_hard_clip_windowed_{}_thresh_{}'.format(
         in_file_base, window_length, threshold)
     out_file = '{}.wav'.format(out_file_base)
@@ -43,9 +45,7 @@ def hard_clip_symmetrical_with_moving_window(
 
 
 def hard_clip_symmetrical(samples: list, threshold: float):
-    peak_positive = max(samples)
-    peak_negative = min(samples)
-    peak = max(peak_positive, abs(peak_negative))
+    peak = absolute_maximum(samples)
     maximum = peak * threshold
     minimum = -maximum
     return [clamp(v, maximum, minimum) for v in samples]
@@ -75,6 +75,20 @@ def samples_to_file(path_without_extension: str, samples: list) -> None:
     path = '{}.raw.pickle'.format(path_without_extension)
     with open(path, 'wb') as f:
         pickle.dump(samples, f)
+
+
+def normalize(samples: list) -> list:
+    peak = absolute_maximum(samples)
+    sample_max = 32767.0
+    normalization_factor = sample_max / peak
+    result = [int(round(v * normalization_factor)) for v in samples]
+    return result
+
+
+def absolute_maximum(samples: list) -> int:
+    peak_positive = max(samples)
+    peak_negative = min(samples)
+    return max(peak_positive, abs(peak_negative))
 
 
 if __name__ == "__main__":
