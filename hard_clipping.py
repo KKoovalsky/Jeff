@@ -2,16 +2,29 @@
 import wave
 import struct
 import pickle
+import click
+import os.path
 
 
-def main():
-    in_file_base = 'C_power_chord_4_strokes_mono'
-    in_file = '{}.wav'.format(in_file_base)
+@click.command()
+@click.argument('wav_input_file', type=click.Path(exists=True))
+@click.option('--threshold',
+              type=float,
+              default=0.5,
+              help='Relative clipping threshold in range (0;1)')
+@click.option('--window_length',
+              type=int,
+              default=64,
+              help='Length of the conversion window.')
+def main(wav_input_file, threshold, window_length):
+    """Performs hard clipping on mono signal from WAV_INPUT_FILE.
+    """
 
-    in_samples = read_samples_from_mono_wav(in_file)
+    sanitize_threshold(threshold)
 
-    threshold = 0.6
-    window_length = 64
+    in_file_base = get_basename_without_extension(wav_input_file)
+    in_samples = read_samples_from_mono_wav(wav_input_file)
+
     out_samples = hard_clip_symmetrical_with_moving_window(
         in_samples, threshold, window_length)
 
@@ -22,6 +35,18 @@ def main():
     out_file = '{}.wav'.format(out_file_base)
     write_samples_to_mono_wav(out_file, out_samples)
     samples_to_file(out_file_base, out_samples)
+
+
+def sanitize_threshold(threshold: float) -> None:
+    if threshold < 0.0 or threshold > 1.0:
+        raise ValueError(
+            'Threshold must be within 0-1 range, got instead: {}'.format(
+                threshold))
+
+
+def get_basename_without_extension(path: str):
+    basename = os.path.basename(path)
+    return os.path.splitext(basename)[0]
 
 
 def read_samples_from_mono_wav(path: str) -> list:
