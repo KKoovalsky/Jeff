@@ -89,6 +89,7 @@ def write_samples_to_mono_wav(path: str, samples: list) -> None:
     num_samples = len(samples)
     samples_raw = struct.pack('<{}h'.format(num_samples), *samples)
 
+    print('Writing result to: {}'.format(path))
     with wave.open(path, 'w') as out_wave:
         out_wave.setnchannels(1)
         out_wave.setsampwidth(2)
@@ -98,6 +99,7 @@ def write_samples_to_mono_wav(path: str, samples: list) -> None:
 
 def samples_to_file(path_without_extension: str, samples: list) -> None:
     path = '{}.raw.pickle'.format(path_without_extension)
+    print('Dumping raw samples to: {}'.format(path))
     with open(path, 'wb') as f:
         pickle.dump(samples, f)
 
