@@ -32,5 +32,7 @@ include(../cmake/device_utilities.cmake)
 add_subdirectory(../src/ src)
 add_subdirectory(cube)
 
+add_subdirectory(threaded_audio_sampler)
+
 add_executable(firmware main.cpp)
 MakeDeviceExecutable(firmware)
