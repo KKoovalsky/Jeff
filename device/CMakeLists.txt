@@ -29,6 +29,7 @@ include(../cmake/device_executable.cmake)
 include(../cmake/host_tools.cmake)
 include(../cmake/device_utilities.cmake)
 
+add_subdirectory(../src/ src)
 add_subdirectory(cube)
 
 add_executable(firmware main.cpp)
