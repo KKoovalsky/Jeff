@@ -32,7 +32,11 @@ include(../cmake/device_utilities.cmake)
 add_subdirectory(../src/ src)
 add_subdirectory(cube)
 
+add_subdirectory(serial_logger)
 add_subdirectory(threaded_audio_sampler)
 
 add_executable(firmware main.cpp)
 MakeDeviceExecutable(firmware)
+
+enable_testing()
+add_subdirectory(../tests/device tests/device)
