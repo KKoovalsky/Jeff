@@ -5,6 +5,23 @@
  */
 #include "threaded_audio_sampler.hpp"
 
-void ThreadedAudioSampler::set_on_sample_received_handler(Handler)
+ThreadedAudioSampler::ThreadedAudioSampler()
+{
+}
+
+ThreadedAudioSampler::~ThreadedAudioSampler()
+{
+}
+
+void ThreadedAudioSampler::set_on_sample_received_handler(Handler handler)
+{
+    on_sample_received_handler = std::move(handler);
+}
+
+void ThreadedAudioSampler::start()
+{
+}
+
+void ThreadedAudioSampler::stop()
 {
 }
