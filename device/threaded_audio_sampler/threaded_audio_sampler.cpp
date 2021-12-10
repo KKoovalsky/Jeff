@@ -25,3 +25,8 @@ void ThreadedAudioSampler::start()
 void ThreadedAudioSampler::stop()
 {
 }
+
+extern "C" void ADC1_IRQHandler(void)
+{
+}
+

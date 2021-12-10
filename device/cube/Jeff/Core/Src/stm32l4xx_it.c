@@ -161,19 +161,6 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles ADC1 global interrupt.
-  */
-void ADC1_IRQHandler(void)
-{
-  /* USER CODE BEGIN ADC1_IRQn 0 */
-
-  /* USER CODE END ADC1_IRQn 0 */
-  /* USER CODE BEGIN ADC1_IRQn 1 */
-
-  /* USER CODE END ADC1_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM1 update interrupt and TIM16 global interrupt.
   */
 void TIM1_UP_TIM16_IRQHandler(void)
