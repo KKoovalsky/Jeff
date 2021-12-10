@@ -14,6 +14,8 @@ struct AudioSampler
     using Handler = std::function<void(Sample)>;
 
     virtual void set_on_sample_received_handler(Handler) = 0;
+    virtual void start() = 0;
+    virtual void stop() = 0;
 
     virtual ~AudioSampler() = default;
 };

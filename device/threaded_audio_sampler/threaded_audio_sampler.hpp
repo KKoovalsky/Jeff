@@ -12,6 +12,9 @@ class ThreadedAudioSampler : public AudioSampler<int>
 {
   public:
     void set_on_sample_received_handler(Handler) override;
+    void start() override;
+    void stop() override;
+
 };
 
 #endif /* THREADED_AUDIO_SAMPLER_HPP */
