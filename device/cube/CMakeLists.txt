@@ -3,7 +3,7 @@ set(cmsis_os_dir Jeff/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2)
 
 add_library(cube STATIC ${cube_sources} ${cmsis_os_dir}/cmsis_os2.c)
 
-target_compile_definitions(cube PUBLIC USE_HAL_DRIVER STM32L432xx)
+target_compile_definitions(cube PUBLIC USE_HAL_DRIVER USE_FULL_LL_DRIVER STM32L432xx)
 target_include_directories(cube PUBLIC
     Jeff/Core/Inc
     Jeff/Drivers/STM32L4xx_HAL_Driver/Inc
