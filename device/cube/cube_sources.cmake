@@ -8,6 +8,7 @@ set(cube_core_sources
     stm32l4xx_hal_timebase_tim.c
     system_stm32l4xx.c
     usart.c
+    adc.c
 )
 list(TRANSFORM cube_core_sources PREPEND ${cube_core_src_dir})
 
