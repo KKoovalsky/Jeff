@@ -30,6 +30,8 @@ set(cube_drivers_sources
     stm32l4xx_hal_tim.c
     stm32l4xx_hal_tim_ex.c
     stm32l4xx_hal_uart.c
+    stm32l4xx_ll_gpio.c
+    stm32l4xx_ll_adc.c
 )
 list(TRANSFORM cube_drivers_sources PREPEND ${cube_drivers_src_dir})
 
