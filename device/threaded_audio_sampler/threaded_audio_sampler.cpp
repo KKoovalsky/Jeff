@@ -16,10 +16,13 @@ static std::function<void(uint16_t raw_sample)> adc1_interrupt_handler;
 
 ThreadedAudioSampler::ThreadedAudioSampler()
 {
+
+    MX_ADC1_Init();
 }
 
 ThreadedAudioSampler::~ThreadedAudioSampler()
 {
+    LL_ADC_DeInit(ADC1);
 }
 
 void ThreadedAudioSampler::set_on_sample_received_handler(Handler handler)
@@ -32,6 +35,9 @@ void ThreadedAudioSampler::start()
     if (is_started)
         return;
 
+    calibrate();
+    enable();
+
     is_started = true;
 }
 
@@ -42,6 +48,31 @@ void ThreadedAudioSampler::stop()
 
     is_started = false;
 }
+
+void ThreadedAudioSampler::calibrate() const
+{
+    auto wait_for_calibration_to_end_or_throw_if_failure{[]() {
+        auto poller{jungles::freertos::make_poller<1, 5>()};
+        auto calibration_finished{poller.poll([]() { return !LL_ADC_IsCalibrationOnGoing(ADC1); })};
+        if (!calibration_finished)
+            throw Error{"Calibration error!"};
+    }};
+
+    LL_ADC_StartCalibration(ADC1, LL_ADC_SINGLE_ENDED);
+    wait_for_calibration_to_end_or_throw_if_failure();
+}
+
+void ThreadedAudioSampler::enable()
+{
+    auto wait_for_adc_to_start_or_throw_if_failure{[]() {
+        auto poller{jungles::freertos::make_poller<1, 5>()};
+        auto calibration_finished{poller.poll([]() { return LL_ADC_IsActiveFlag_ADRDY(ADC1) != 0; })};
+        if (!calibration_finished)
+            throw Error{"Failed to start!"};
+    }};
+
+    LL_ADC_Enable(ADC1);
+    wait_for_adc_to_start_or_throw_if_failure();
 
 }
 

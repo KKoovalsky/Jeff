@@ -14,7 +14,6 @@
 class ThreadedAudioSampler : public AudioSampler<int>
 {
   public:
-
     explicit ThreadedAudioSampler();
     ~ThreadedAudioSampler() override;
 
@@ -34,6 +33,11 @@ class ThreadedAudioSampler : public AudioSampler<int>
     };
 
   private:
+    void calibrate() const;
+    void enable();
+
+    void handle_new_sample(uint16_t);
+
     Handler on_sample_received_handler;
     bool is_started{false};
 
