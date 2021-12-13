@@ -6,6 +6,7 @@
 #ifndef THREADED_AUDIO_SAMPLER_HPP
 #define THREADED_AUDIO_SAMPLER_HPP
 
+#include <cstdint>
 #include <string>
 
 #include "audio_sampler.hpp"

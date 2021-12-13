@@ -4,7 +4,9 @@
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
+#include <algorithm>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <string_view>
 
@@ -73,7 +75,30 @@ void ThreadedAudioSampler::enable()
 
     LL_ADC_Enable(ADC1);
     wait_for_adc_to_start_or_throw_if_failure();
+}
 
+void ThreadedAudioSampler::handle_new_sample(uint16_t raw_sample)
+{
+    // TODO: to make it faster, use DMA and here receive multiple samples instead of single one, but send
+    // samples one-by-one to the callback.
+
+    static constexpr unsigned reference_voltage_in_millivolts{3300};
+    unsigned sample_in_millivolts{
+        __LL_ADC_CALC_DATA_TO_VOLTAGE(reference_voltage_in_millivolts, raw_sample, LL_ADC_RESOLUTION_12B)};
+
+    static constexpr unsigned dc_offset_in_millivolts{1650};
+
+    static constexpr unsigned maximum_positive_amplitude{reference_voltage_in_millivolts - dc_offset_in_millivolts};
+    static constexpr unsigned maximum_negative_amplitude{dc_offset_in_millivolts - 0};
+    static constexpr unsigned maximum_amplitude{std::max(maximum_positive_amplitude, maximum_negative_amplitude)};
+
+    static constexpr int normalizing_factor_to_int_max{std::numeric_limits<int>::max() / maximum_amplitude};
+
+    auto sample_in_millivolts_without_dc_offset{static_cast<int>(sample_in_millivolts - dc_offset_in_millivolts)};
+    int sample{sample_in_millivolts_without_dc_offset * normalizing_factor_to_int_max};
+
+    if (on_sample_received_handler)
+        on_sample_received_handler(sample);
 }
 
 extern "C" void ADC1_IRQHandler(void)
