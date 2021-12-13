@@ -12,6 +12,7 @@ target_include_directories(cube PUBLIC
     ${cmsis_os_dir}
 )
 target_link_libraries(cube PRIVATE freertos)
+target_compile_options(cube PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>)
 
 add_library(freertos_config INTERFACE)
 target_include_directories(freertos_config INTERFACE Jeff/Core/Inc)
