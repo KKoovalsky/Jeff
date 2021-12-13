@@ -14,10 +14,18 @@
 
 #include "adc.h"
 
+#include "cmsis_os2.h"
+#include "jungles_os_helpers/freertos/poller.hpp"
+
 static std::function<void(uint16_t raw_sample)> adc1_interrupt_handler;
 
-ThreadedAudioSampler::ThreadedAudioSampler()
+ThreadedAudioSampler::ThreadedAudioSampler() :
+    worker{"AudioSampler", 1024, osPriorityNormal},
+    active{[this](auto&& v) { this->handle_new_sample(v); }, message_pump, worker}
 {
+    adc1_interrupt_handler = [this](uint16_t raw_sample) {
+        this->active.send(std::move(raw_sample));
+    };
 
     MX_ADC1_Init();
 }

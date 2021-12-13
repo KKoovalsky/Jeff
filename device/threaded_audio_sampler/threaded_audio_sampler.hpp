@@ -11,6 +11,10 @@
 
 #include "audio_sampler.hpp"
 
+#include "jungles_os_helpers/freertos/queue_sending_from_isr.hpp"
+#include "jungles_os_helpers/freertos/thread.hpp"
+#include "jungles_os_helpers/generic_implementations/active.hpp"
+
 // TODO: Singleton
 class ThreadedAudioSampler : public AudioSampler<int>
 {
@@ -42,6 +46,19 @@ class ThreadedAudioSampler : public AudioSampler<int>
     Handler on_sample_received_handler;
     bool is_started{false};
 
+    static constexpr std::size_t message_pump_size{8};
+
+    template<typename T>
+    using MessagePumpTemplate = jungles::freertos::queue_sending_from_isr<T, message_pump_size>;
+
+    using Thread = jungles::freertos::thread;
+
+    using Active = jungles::generic::active<uint16_t, MessagePumpTemplate, Thread>;
+    using MessagePump = typename Active::MessagePump;
+
+    MessagePump message_pump;
+    Thread worker;
+    Active active;
 };
 
 #endif /* THREADED_AUDIO_SAMPLER_HPP */
