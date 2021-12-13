@@ -34,6 +34,8 @@ class ThreadedAudioSampler : public AudioSampler<int>
 
   private:
     Handler on_sample_received_handler;
+    bool is_started{false};
+
 };
 
 #endif /* THREADED_AUDIO_SAMPLER_HPP */

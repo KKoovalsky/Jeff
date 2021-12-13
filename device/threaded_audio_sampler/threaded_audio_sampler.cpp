@@ -25,10 +25,20 @@ void ThreadedAudioSampler::set_on_sample_received_handler(Handler handler)
 
 void ThreadedAudioSampler::start()
 {
+    if (is_started)
+        return;
+
+    is_started = true;
 }
 
 void ThreadedAudioSampler::stop()
 {
+    if (!is_started)
+        return;
+
+    is_started = false;
+}
+
 }
 
 extern "C" void ADC1_IRQHandler(void)
