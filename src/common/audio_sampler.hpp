@@ -6,9 +6,10 @@
 #ifndef AUDIO_SAMPLER_HPP
 #define AUDIO_SAMPLER_HPP
 
+#include <exception>
 #include <functional>
 
-template <typename Sample>
+template<typename Sample>
 struct AudioSampler
 {
     using Handler = std::function<void(Sample)>;
@@ -18,6 +19,10 @@ struct AudioSampler
     virtual void stop() = 0;
 
     virtual ~AudioSampler() = default;
+
+    struct Error : std::exception
+    {
+    };
 };
 
 #endif /* AUDIO_SAMPLER_HPP */
