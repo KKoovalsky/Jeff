@@ -16,7 +16,7 @@ class ThreadedAudioSampler : public AudioSampler<int>
   public:
 
     explicit ThreadedAudioSampler();
-    ~ThreadedAudioSampler();
+    ~ThreadedAudioSampler() override;
 
     void set_on_sample_received_handler(Handler) override;
     void start() override;
