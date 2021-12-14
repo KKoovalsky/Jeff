@@ -1,7 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
 ADC1.Channel-1\#ChannelRegularConversion=ADC_CHANNEL_5
 ADC1.ContinuousConvMode=ENABLE
-ADC1.EOCSelection=ADC_EOC_SEQ_CONV
+ADC1.EOCSelection=ADC_EOC_SINGLE_CONV
 ADC1.EnableRegularConversion=ENABLE
 ADC1.ExternalTrigConv=ADC_SOFTWARE_START
 ADC1.IPParameters=master,ContinuousConvMode,EOCSelection,OversamplingMode,EnableRegularConversion,Overrun,Rank-1\#ChannelRegularConversion,Channel-1\#ChannelRegularConversion,SamplingTime-1\#ChannelRegularConversion,OffsetNumber-1\#ChannelRegularConversion,NbrOfConversionFlag,NbrOfConversion,ExternalTrigConv
