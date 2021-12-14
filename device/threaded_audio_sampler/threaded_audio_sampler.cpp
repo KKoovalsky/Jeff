@@ -88,6 +88,7 @@ void ThreadedAudioSampler::enable()
             throw Error{"Failed to start!"};
     }};
 
+    LL_ADC_EnableIT_EOC(ADC1);
     LL_ADC_Enable(ADC1);
     wait_for_adc_to_start_or_throw_if_failure();
 }
