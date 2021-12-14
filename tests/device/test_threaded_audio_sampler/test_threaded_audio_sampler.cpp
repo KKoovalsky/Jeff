@@ -18,6 +18,7 @@
  * @{
  */
 void test_single_sample_is_obtained();
+void test_multiple_instances_can_be_created_one_after_another();
 void test_proper_number_of_samples_is_collected_within_specific_period();
 void test_sampling_frequency_is_stable();
 void test_cant_create_two_instances();
@@ -39,6 +40,11 @@ void test_single_sample_is_obtained()
     sampler.stop();
 
     TEST_ASSERT_TRUE(true);
+}
+
+void test_multiple_instances_can_be_created_one_after_another()
+{
+    TEST_ABORT();
 }
 
 void test_proper_number_of_samples_is_collected_within_specific_period()
