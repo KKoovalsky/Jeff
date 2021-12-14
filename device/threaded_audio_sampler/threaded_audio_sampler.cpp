@@ -121,13 +121,11 @@ void ThreadedAudioSampler::handle_new_sample(uint16_t raw_sample)
 extern "C" void ADC1_IRQHandler(void)
 {
     auto is_conversion_finished{[]() {
-        // TODO: check if LL_ADC_IsActiveFlag_EOC() shall be used instead (end of conversion).
-        // Currently we check for End of Sequence.
-        return LL_ADC_IsActiveFlag_EOS(ADC1);
+        return LL_ADC_IsActiveFlag_EOC(ADC1);
     }};
 
     auto clear_conversion_flag{[]() {
-        LL_ADC_ClearFlag_EOS(ADC1);
+        LL_ADC_ClearFlag_EOC(ADC1);
     }};
 
     if (is_conversion_finished())
