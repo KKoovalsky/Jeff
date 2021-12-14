@@ -1,3 +1,3 @@
 add_executable(test_threaded_audio_sampler test_threaded_audio_sampler.cpp)
 PromoteToDeviceTestExecutable(test_threaded_audio_sampler test_threaded_audio_sampler)
-target_link_libraries(test_threaded_audio_sampler PRIVATE threaded_audio_sampler jungles::os_helpers)
+target_link_libraries(test_threaded_audio_sampler PRIVATE threaded_audio_sampler jungles::os_helpers os_utils)
