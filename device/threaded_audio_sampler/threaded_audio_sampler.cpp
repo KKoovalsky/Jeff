@@ -91,6 +91,7 @@ void ThreadedAudioSampler::enable()
     LL_ADC_EnableIT_EOC(ADC1);
     LL_ADC_Enable(ADC1);
     wait_for_adc_to_start_or_throw_if_failure();
+    LL_ADC_REG_StartConversion(ADC1);
 }
 
 void ThreadedAudioSampler::handle_new_sample(uint16_t raw_sample)
