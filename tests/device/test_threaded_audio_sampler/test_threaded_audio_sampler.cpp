@@ -55,9 +55,11 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
 
     ThreadedAudioSampler sampler;
     sampler.set_on_sample_received_handler([&](int) { samples_received++; });
+    sampler.start();
 
     using namespace std::chrono_literals;
     os::wait(1s);
+    sampler.stop();
 
     unsigned samples_received_after_one_second{samples_received};
 
