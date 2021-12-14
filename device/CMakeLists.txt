@@ -32,6 +32,7 @@ include(../cmake/device_utilities.cmake)
 add_subdirectory(../src/ src)
 add_subdirectory(cube)
 
+add_subdirectory(os_utils)
 add_subdirectory(serial_logger)
 add_subdirectory(threaded_audio_sampler)
 
