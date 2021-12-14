@@ -5,11 +5,13 @@
  */
 
 #include <algorithm>
+#include <chrono>
 #include <cstring>
 #include <limits>
 #include <string>
 #include <string_view>
 
+#include "os_waiters.hpp"
 #include "threaded_audio_sampler.hpp"
 
 #include "adc.h"
@@ -68,8 +70,13 @@ void ThreadedAudioSampler::calibrate() const
             throw Error{"Calibration error!"};
     }};
 
+    auto delay_before_enabling{[]() {
+        os::wait(std::chrono::milliseconds{200});
+    }};
+
     LL_ADC_StartCalibration(ADC1, LL_ADC_SINGLE_ENDED);
     wait_for_calibration_to_end_or_throw_if_failure();
+    delay_before_enabling();
 }
 
 void ThreadedAudioSampler::enable()
