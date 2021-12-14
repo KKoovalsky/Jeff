@@ -34,6 +34,7 @@ ThreadedAudioSampler::ThreadedAudioSampler() :
 
 ThreadedAudioSampler::~ThreadedAudioSampler()
 {
+    // TODO: deregister adc1_interrupt_handler
     LL_ADC_DeInit(ADC1);
 }
 
@@ -57,6 +58,9 @@ void ThreadedAudioSampler::stop()
 {
     if (!is_started)
         return;
+
+    // TODO: implement
+    // TODO: synchronize ending or prevent from calling the IT handler, by disabling IT and clearing the IT flag.
 
     is_started = false;
 }
