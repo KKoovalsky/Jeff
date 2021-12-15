@@ -9,6 +9,7 @@ set(cube_core_sources
     system_stm32l4xx.c
     usart.c
     adc.c
+    dma.c
 )
 list(TRANSFORM cube_core_sources PREPEND ${cube_core_src_dir})
 
