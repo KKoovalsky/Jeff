@@ -38,7 +38,7 @@ ThreadedAudioSampler::~ThreadedAudioSampler()
     LL_ADC_DeInit(ADC1);
 }
 
-void ThreadedAudioSampler::set_on_sample_received_handler(Handler handler)
+void ThreadedAudioSampler::set_on_batch_of_samples_received_handler(Handler handler)
 {
     on_sample_received_handler = std::move(handler);
 }
@@ -119,7 +119,7 @@ void ThreadedAudioSampler::handle_new_sample(uint16_t raw_sample)
     int sample{sample_in_millivolts_without_dc_offset * normalizing_factor_to_int_max};
 
     if (on_sample_received_handler)
-        on_sample_received_handler(sample);
+        on_sample_received_handler(std::begin(sample_buffer), std::end(sample_buffer));
 }
 
 extern "C" void ADC1_IRQHandler(void)

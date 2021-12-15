@@ -15,18 +15,23 @@
 #include "jungles_os_helpers/freertos/thread.hpp"
 #include "jungles_os_helpers/generic_implementations/active.hpp"
 
+constexpr inline unsigned SampleBufferSize{64};
+using SampleBuffer = std::array<int, SampleBufferSize>;
+using SampleIterator = typename SampleBuffer::const_iterator;
+using AudioSamplerInterface = AudioSampler<SampleIterator, SampleIterator>;
+
 // TODO: Singleton
-class ThreadedAudioSampler : public AudioSampler<int>
+class ThreadedAudioSampler : public AudioSamplerInterface
 {
   public:
     explicit ThreadedAudioSampler();
     ~ThreadedAudioSampler() override;
 
-    void set_on_sample_received_handler(Handler) override;
+    void set_on_batch_of_samples_received_handler(Handler) override;
     void start() override;
     void stop() override;
 
-    class Error : public AudioSampler<int>::Error
+    class Error : public AudioSamplerInterface::Error
     {
       public:
         explicit Error(const char* message);
@@ -43,6 +48,7 @@ class ThreadedAudioSampler : public AudioSampler<int>
 
     void handle_new_sample(uint16_t);
 
+    SampleBuffer sample_buffer = {};
     Handler on_sample_received_handler;
     bool is_started{false};
 
