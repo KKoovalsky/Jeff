@@ -61,7 +61,6 @@ Mcu.UserConstants=
 Mcu.UserName=STM32L432KCUx
 MxCube.Version=6.3.0
 MxDb.Version=DB.6.0.30
-NVIC.ADC1_IRQn=true\:5\:0\:false\:false\:false\:true\:true\:true
 NVIC.BusFault_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.DMA1_Channel1_IRQn=true\:5\:0\:false\:false\:false\:true\:false\:true
 NVIC.DebugMonitor_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
