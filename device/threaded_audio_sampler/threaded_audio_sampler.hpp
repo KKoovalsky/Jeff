@@ -6,6 +6,7 @@
 #ifndef THREADED_AUDIO_SAMPLER_HPP
 #define THREADED_AUDIO_SAMPLER_HPP
 
+#include <array>
 #include <cstdint>
 #include <string>
 
@@ -16,11 +17,16 @@
 #include "jungles_os_helpers/generic_implementations/active.hpp"
 
 constexpr inline unsigned SampleBufferSize{64};
+
+// TODO: better use std::vector which is easily movable?
+using RawSampleBuffer = std::array<uint16_t, SampleBufferSize>;
+
 using SampleBuffer = std::array<int, SampleBufferSize>;
 using SampleIterator = typename SampleBuffer::const_iterator;
 using AudioSamplerInterface = AudioSampler<SampleIterator, SampleIterator>;
 
-// TODO: Singleton
+extern "C" void DMA1_Channel1_IRQHandler();
+
 class ThreadedAudioSampler : public AudioSamplerInterface
 {
   public:
@@ -43,13 +49,18 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     };
 
   private:
-    void calibrate() const;
-    void enable();
+    void configure_dma();
+    static void calibrate();
+    static void enable();
 
-    void handle_new_sample(uint16_t);
+    void send_new_batch_of_samples_to_active();
+    static int convert_sample(uint16_t raw_sample);
+    void handle_new_batch_of_samples(const RawSampleBuffer&);
 
-    SampleBuffer sample_buffer = {};
-    Handler on_sample_received_handler;
+    static inline ThreadedAudioSampler* singleton_pointer{nullptr};
+
+    RawSampleBuffer raw_sample_buffer = {};
+    Handler on_samples_received_handler;
     bool is_started{false};
 
     static constexpr std::size_t message_pump_size{8};
@@ -59,12 +70,14 @@ class ThreadedAudioSampler : public AudioSamplerInterface
 
     using Thread = jungles::freertos::thread;
 
-    using Active = jungles::generic::active<uint16_t, MessagePumpTemplate, Thread>;
+    using Active = jungles::generic::active<RawSampleBuffer, MessagePumpTemplate, Thread>;
     using MessagePump = typename Active::MessagePump;
 
     MessagePump message_pump;
     Thread worker;
     Active active;
+
+    friend void DMA1_Channel1_IRQHandler();
 };
 
 #endif /* THREADED_AUDIO_SAMPLER_HPP */

@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstring>
 #include <limits>
+#include <ranges>
 #include <string>
 #include <string_view>
 
@@ -19,28 +20,28 @@
 #include "cmsis_os2.h"
 #include "jungles_os_helpers/freertos/poller.hpp"
 
-static std::function<void(uint16_t raw_sample)> adc1_interrupt_handler;
-
 ThreadedAudioSampler::ThreadedAudioSampler() :
     worker{"AudioSampler", 1024, osPriorityNormal},
-    active{[this](auto&& v) { this->handle_new_sample(v); }, message_pump, worker}
+    active{[this](auto&& v) { this->handle_new_batch_of_samples(v); }, message_pump, worker}
 {
-    adc1_interrupt_handler = [this](uint16_t raw_sample) {
-        this->active.send(std::move(raw_sample));
-    };
+    if (singleton_pointer != nullptr)
+        throw Error{"Only one instance can be run at a time!"};
+
+    singleton_pointer = this;
 
     MX_ADC1_Init();
 }
 
 ThreadedAudioSampler::~ThreadedAudioSampler()
 {
-    // TODO: deregister adc1_interrupt_handler
     LL_ADC_DeInit(ADC1);
+
+    singleton_pointer = nullptr;
 }
 
 void ThreadedAudioSampler::set_on_batch_of_samples_received_handler(Handler handler)
 {
-    on_sample_received_handler = std::move(handler);
+    on_samples_received_handler = std::move(handler);
 }
 
 void ThreadedAudioSampler::start()
@@ -48,6 +49,7 @@ void ThreadedAudioSampler::start()
     if (is_started)
         return;
 
+    configure_dma();
     calibrate();
     enable();
 
@@ -65,7 +67,7 @@ void ThreadedAudioSampler::stop()
     is_started = false;
 }
 
-void ThreadedAudioSampler::calibrate() const
+void ThreadedAudioSampler::calibrate()
 {
     auto wait_for_calibration_to_end_or_throw_if_failure{[]() {
         auto poller{jungles::freertos::make_poller<1, 5>()};
@@ -92,17 +94,14 @@ void ThreadedAudioSampler::enable()
             throw Error{"Failed to start!"};
     }};
 
-    LL_ADC_EnableIT_EOC(ADC1);
     LL_ADC_Enable(ADC1);
     wait_for_adc_to_start_or_throw_if_failure();
     LL_ADC_REG_StartConversion(ADC1);
+    // TODO: handle errors from LL_ADC_IsActiveFlag_OVR(ADC1) (overrun detection).
 }
 
-void ThreadedAudioSampler::handle_new_sample(uint16_t raw_sample)
+int ThreadedAudioSampler::convert_sample(uint16_t raw_sample)
 {
-    // TODO: to make it faster, use DMA and here receive multiple samples instead of single one, but send
-    // samples one-by-one to the callback.
-
     static constexpr unsigned reference_voltage_in_millivolts{3300};
     unsigned sample_in_millivolts{
         __LL_ADC_CALC_DATA_TO_VOLTAGE(reference_voltage_in_millivolts, raw_sample, LL_ADC_RESOLUTION_12B)};
@@ -117,33 +116,53 @@ void ThreadedAudioSampler::handle_new_sample(uint16_t raw_sample)
 
     auto sample_in_millivolts_without_dc_offset{static_cast<int>(sample_in_millivolts - dc_offset_in_millivolts)};
     int sample{sample_in_millivolts_without_dc_offset * normalizing_factor_to_int_max};
-
-    if (on_sample_received_handler)
-        on_sample_received_handler(std::begin(sample_buffer), std::end(sample_buffer));
+    return sample;
 }
 
-extern "C" void ADC1_IRQHandler(void)
+void ThreadedAudioSampler::configure_dma()
 {
-    auto is_conversion_finished{[]() {
-        return LL_ADC_IsActiveFlag_EOC(ADC1);
-    }};
+    LL_DMA_ConfigAddresses(DMA1,
+                           LL_DMA_CHANNEL_1,
+                           LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA),
+                           reinterpret_cast<uint32_t>(raw_sample_buffer.data()),
+                           LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
 
-    auto clear_conversion_flag{[]() {
-        LL_ADC_ClearFlag_EOC(ADC1);
-    }};
+    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, raw_sample_buffer.size());
 
-    if (is_conversion_finished())
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
+
+    //    /* Enable DMA transfer interruption: half transfer */
+    //    LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_1);
+    //    /* Enable DMA transfer interruption: transfer error */
+    //    LL_DMA_EnableIT_TE(DMA1, LL_DMA_CHANNEL_1);
+
+    /* Enable the DMA transfer */
+    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+}
+
+extern "C" void DMA1_Channel1_IRQHandler(void)
+{
+    if (LL_DMA_IsActiveFlag_TC1(DMA1) == 1)
     {
-        clear_conversion_flag();
-        uint16_t raw_sample{LL_ADC_REG_ReadConversionData12(ADC1)};
+        LL_DMA_ClearFlag_TC1(DMA1);
 
-        if (adc1_interrupt_handler)
-        {
-            adc1_interrupt_handler(raw_sample);
-        }
+        // DMA puts the data to the buffer specified with LL_DMA_ConfigAddresses().
+        ThreadedAudioSampler::singleton_pointer->send_new_batch_of_samples_to_active();
     }
+}
 
-    // TODO: handle errors from LL_ADC_IsActiveFlag_OVR(ADC1) (overrun detection).
+void ThreadedAudioSampler::send_new_batch_of_samples_to_active()
+{
+    auto raw_samples{raw_sample_buffer};
+    active.send(std::move(raw_samples));
+}
+
+void ThreadedAudioSampler::handle_new_batch_of_samples(const RawSampleBuffer& raw_samples)
+{
+    SampleBuffer samples;
+    std::ranges::transform(std::begin(raw_samples), std::end(raw_samples), std::begin(samples), convert_sample);
+    if (on_samples_received_handler)
+        on_samples_received_handler(std::begin(samples), std::end(samples));
 }
 
 ThreadedAudioSampler::Error::Error(const char* message)
