@@ -13,12 +13,14 @@
 
 #include "unity.h"
 
+using namespace std::chrono_literals;
+
 /**
  * @defgroup ThreadedAudioSamplerTests     Tests of ThreadedAudioSampler
  * @{
  */
 void test_single_batch_of_samples_is_obtained();
-void test_multiple_instances_can_be_created_one_after_another();
+void test_multiple_instances_can_be_run_one_after_another();
 void test_proper_number_of_samples_is_collected_within_specific_period();
 void test_sampling_frequency_is_stable();
 void test_cant_create_two_instances();
@@ -39,12 +41,33 @@ void test_single_batch_of_samples_is_obtained()
     samples_received_flag.wait();
     sampler.stop();
 
+    // TODO: Refactor tests in such a way that we assert for something specific, e.g. wait() has timeout.
     TEST_ASSERT_TRUE(true);
 }
 
-void test_multiple_instances_can_be_created_one_after_another()
+void test_multiple_instances_can_be_run_one_after_another()
 {
-    TEST_IGNORE();
+    {
+        jungles::freertos::flag samples_received_flag;
+        ThreadedAudioSampler sampler;
+        sampler.set_on_batch_of_samples_received_handler([&](auto, auto) { samples_received_flag.set(); });
+        sampler.start();
+        samples_received_flag.wait();
+        sampler.stop();
+    }
+
+    os::wait(300ms);
+
+    {
+        jungles::freertos::flag samples_received_flag;
+        ThreadedAudioSampler sampler;
+        sampler.set_on_batch_of_samples_received_handler([&](auto, auto) { samples_received_flag.set(); });
+        sampler.start();
+        samples_received_flag.wait();
+        sampler.stop();
+    }
+
+    TEST_ASSERT_TRUE(true);
 }
 
 void test_proper_number_of_samples_is_collected_within_specific_period()
@@ -57,7 +80,6 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
     sampler.set_on_batch_of_samples_received_handler([&](auto, auto) { samples_received++; });
     sampler.start();
 
-    using namespace std::chrono_literals;
     os::wait(1s);
     sampler.stop();
 
