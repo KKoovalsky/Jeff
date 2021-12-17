@@ -77,7 +77,8 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
     unsigned samples_received{0};
 
     ThreadedAudioSampler sampler;
-    sampler.set_on_batch_of_samples_received_handler([&](auto, auto) { samples_received++; });
+    sampler.set_on_batch_of_samples_received_handler(
+        [&](auto beg, auto end) { samples_received += std::distance(beg, end); });
     sampler.start();
 
     os::wait(1s);
