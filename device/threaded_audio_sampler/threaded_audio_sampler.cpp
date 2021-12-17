@@ -9,8 +9,8 @@
 #include <cstring>
 #include <limits>
 #include <ranges>
-#include <string>
 #include <string_view>
+#include <utility>
 
 #include "os_waiters.hpp"
 #include "threaded_audio_sampler.hpp"
@@ -20,9 +20,24 @@
 #include "cmsis_os2.h"
 #include "jungles_os_helpers/freertos/poller.hpp"
 
+enum class ThreadedAudioSamplerEvent : EventBits_t
+{
+    half_transfer = 0b001,
+    full_transfer = 0b010,
+    quit = 0b100,
+    any = 0b111
+};
+
+template<typename Enum>
+constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
+{
+    return static_cast<std::underlying_type_t<Enum>>(e);
+}
+
 ThreadedAudioSampler::ThreadedAudioSampler() :
-    worker{"AudioSampler", 1536, osPriorityNormal},
-    active{[this](auto&& v) { this->handle_new_batch_of_samples(v); }, message_pump, worker}
+    audio_sampler_events{xEventGroupCreate()},
+    thread_finished_semaphore{xSemaphoreCreateBinary()},
+    worker{"AudioSampler", 1536, osPriorityNormal}
 {
     if (singleton_pointer != nullptr)
         throw Error{"Only one instance can be run at a time!"};
@@ -35,6 +50,9 @@ ThreadedAudioSampler::ThreadedAudioSampler() :
 ThreadedAudioSampler::~ThreadedAudioSampler()
 {
     LL_ADC_DeInit(ADC1);
+
+    vEventGroupDelete(audio_sampler_events);
+    vSemaphoreDelete(thread_finished_semaphore);
 
     singleton_pointer = nullptr;
 }
@@ -49,6 +67,8 @@ void ThreadedAudioSampler::start()
     if (is_started)
         return;
 
+    worker.start([this]() { this->thread_code(); });
+
     configure_dma();
     calibrate_adc();
     enable_adc();
@@ -61,9 +81,19 @@ void ThreadedAudioSampler::stop()
     if (!is_started)
         return;
 
+    auto quit_running_thread{[this]() {
+        xEventGroupSetBits(this->audio_sampler_events, to_underlying(ThreadedAudioSamplerEvent::quit));
+    }};
+
+    auto wait_for_thread_to_finish{[this]() {
+        xSemaphoreTake(this->thread_finished_semaphore, portMAX_DELAY);
+    }};
+
     disable_adc();
     disable_dma();
-    // TODO: synchronize ending or prevent from calling the IT handler, by disabling IT and clearing the IT flag.
+
+    quit_running_thread();
+    wait_for_thread_to_finish();
 
     is_started = false;
 }
@@ -130,10 +160,17 @@ void ThreadedAudioSampler::configure_dma()
 
     LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, raw_sample_buffer.size());
 
-    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
+    auto enable_dma_interrupt_on_half_transfer{[]() {
+        LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_1);
+    }};
 
-    //    /* Enable DMA transfer interruption: half transfer */
-    //    LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_1);
+    auto enable_dma_interrupt_on_full_transfer{[]() {
+        LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
+    }};
+
+    enable_dma_interrupt_on_half_transfer();
+    enable_dma_interrupt_on_full_transfer();
+
     //    /* Enable DMA transfer interruption: transfer error */
     //    LL_DMA_EnableIT_TE(DMA1, LL_DMA_CHANNEL_1);
 
@@ -144,7 +181,9 @@ void ThreadedAudioSampler::configure_dma()
 void ThreadedAudioSampler::disable_dma()
 {
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_1);
+    LL_DMA_DisableIT_HT(DMA1, LL_DMA_CHANNEL_1);
     LL_DMA_DisableIT_TC(DMA1, LL_DMA_CHANNEL_1);
+    LL_DMA_ClearFlag_HT1(DMA1);
     LL_DMA_ClearFlag_TC1(DMA1);
 }
 
@@ -156,27 +195,82 @@ void ThreadedAudioSampler::disable_adc()
 
 extern "C" void DMA1_Channel1_IRQHandler(void)
 {
+    // DMA puts the data to the buffer specified with LL_DMA_ConfigAddresses().
+
+    auto higher_priority_task_woken_during_half_transfer{pdFALSE};
+    auto higher_priority_task_woken_during_full_transfer{pdFALSE};
+
+    if (LL_DMA_IsActiveFlag_HT1(DMA1) == 1)
+    {
+        LL_DMA_ClearFlag_HT1(DMA1);
+
+        auto threaded_audio_sampler_events{ThreadedAudioSampler::singleton_pointer->audio_sampler_events};
+        xEventGroupSetBitsFromISR(threaded_audio_sampler_events,
+                                  to_underlying(ThreadedAudioSamplerEvent::half_transfer),
+                                  &higher_priority_task_woken_during_half_transfer);
+    }
+
     if (LL_DMA_IsActiveFlag_TC1(DMA1) == 1)
     {
         LL_DMA_ClearFlag_TC1(DMA1);
 
-        // DMA puts the data to the buffer specified with LL_DMA_ConfigAddresses().
-        ThreadedAudioSampler::singleton_pointer->send_new_batch_of_samples_to_active();
+        auto threaded_audio_sampler_events{ThreadedAudioSampler::singleton_pointer->audio_sampler_events};
+        xEventGroupSetBitsFromISR(threaded_audio_sampler_events,
+                                  to_underlying(ThreadedAudioSamplerEvent::full_transfer),
+                                  &higher_priority_task_woken_during_full_transfer);
     }
+
+    portYIELD_FROM_ISR(higher_priority_task_woken_during_half_transfer
+                       or higher_priority_task_woken_during_full_transfer);
 }
 
-void ThreadedAudioSampler::send_new_batch_of_samples_to_active()
+void ThreadedAudioSampler::thread_code()
 {
-    auto raw_samples{raw_sample_buffer};
-    active.send(std::move(raw_samples));
-}
+    auto wait_for_any_event{[this]() {
+        auto do_clear_event_bits_on_exit{pdTRUE};
+        auto do_wait_for_any_bit_set{pdFALSE};
+        auto do_wait_indefinitely{portMAX_DELAY};
+        return xEventGroupWaitBits(this->audio_sampler_events,
+                                   to_underlying(ThreadedAudioSamplerEvent::any),
+                                   do_clear_event_bits_on_exit,
+                                   do_wait_for_any_bit_set,
+                                   do_wait_indefinitely);
+    }};
 
-void ThreadedAudioSampler::handle_new_batch_of_samples(const RawSampleBuffer& raw_samples)
-{
-    SampleBuffer samples;
-    std::ranges::transform(std::begin(raw_samples), std::end(raw_samples), std::begin(samples), convert_sample);
-    if (on_samples_received_handler)
-        on_samples_received_handler(std::begin(samples), std::end(samples));
+    auto is_event{[](auto event_bits, ThreadedAudioSamplerEvent event) {
+        return (event_bits & to_underlying(event)) != 0;
+    }};
+
+    auto convert_samples_and_call_sample_batch_handler{[this](auto raw_samples_begin, auto raw_samples_end) {
+        // TODO: We might copy the raw_samples_* range before handling, to prevent from races.
+        SampleBuffer samples;
+        std::ranges::transform(raw_samples_begin, raw_samples_end, std::begin(samples), convert_sample);
+        if (this->on_samples_received_handler)
+            this->on_samples_received_handler(std::begin(samples), std::end(samples));
+    }};
+
+    while (true)
+    {
+        auto event{wait_for_any_event()};
+        if (is_event(event, ThreadedAudioSamplerEvent::half_transfer))
+        {
+            auto begin{std::begin(raw_sample_buffer)};
+            auto end{raw_sample_buffer_half_indicator};
+            convert_samples_and_call_sample_batch_handler(begin, end);
+        }
+        if (is_event(event, ThreadedAudioSamplerEvent::full_transfer))
+        {
+            auto begin{raw_sample_buffer_half_indicator};
+            auto end{std::end(raw_sample_buffer)};
+            convert_samples_and_call_sample_batch_handler(begin, end);
+        }
+        if (is_event(event, ThreadedAudioSamplerEvent::quit))
+        {
+            break;
+        }
+    }
+
+    xSemaphoreGive(thread_finished_semaphore);
 }
 
 ThreadedAudioSampler::Error::Error(const char* message)

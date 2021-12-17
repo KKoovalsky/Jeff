@@ -12,14 +12,16 @@
 
 #include "audio_sampler.hpp"
 
-#include "jungles_os_helpers/freertos/queue_sending_from_isr.hpp"
 #include "jungles_os_helpers/freertos/thread.hpp"
-#include "jungles_os_helpers/generic_implementations/active.hpp"
 
-constexpr inline unsigned SampleBufferSize{64};
+#include "FreeRTOS.h"
+#include "event_groups.h"
+#include "semphr.h"
 
-// TODO: better use std::vector which is easily movable?
-using RawSampleBuffer = std::array<uint16_t, SampleBufferSize>;
+constexpr inline unsigned RawSampleBufferSize{128};
+constexpr inline unsigned SampleBufferSize{RawSampleBufferSize / 2};
+
+using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;
 
 using SampleBuffer = std::array<int, SampleBufferSize>;
 using SampleIterator = typename SampleBuffer::const_iterator;
@@ -55,29 +57,25 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     static void enable_adc();
     static void disable_adc();
 
-    void send_new_batch_of_samples_to_active();
     static int convert_sample(uint16_t raw_sample);
-    void handle_new_batch_of_samples(const RawSampleBuffer&);
+    void thread_code();
 
     static inline ThreadedAudioSampler* singleton_pointer{nullptr};
 
     RawSampleBuffer raw_sample_buffer = {};
+
+    using RawSampleIterator = RawSampleBuffer::const_iterator;
+    const RawSampleIterator raw_sample_buffer_half_indicator{
+        std::next(std::begin(raw_sample_buffer), RawSampleBufferSize / 2)};
+
     Handler on_samples_received_handler;
     bool is_started{false};
 
-    static constexpr std::size_t message_pump_size{8};
-
-    template<typename T>
-    using MessagePumpTemplate = jungles::freertos::queue_sending_from_isr<T, message_pump_size>;
+    EventGroupHandle_t audio_sampler_events;
+    SemaphoreHandle_t thread_finished_semaphore;
 
     using Thread = jungles::freertos::thread;
-
-    using Active = jungles::generic::active<RawSampleBuffer, MessagePumpTemplate, Thread>;
-    using MessagePump = typename Active::MessagePump;
-
-    MessagePump message_pump;
     Thread worker;
-    Active active;
 
     friend void DMA1_Channel1_IRQHandler();
 };
