@@ -50,8 +50,8 @@ void ThreadedAudioSampler::start()
         return;
 
     configure_dma();
-    calibrate();
-    enable();
+    calibrate_adc();
+    enable_adc();
 
     is_started = true;
 }
@@ -67,7 +67,7 @@ void ThreadedAudioSampler::stop()
     is_started = false;
 }
 
-void ThreadedAudioSampler::calibrate()
+void ThreadedAudioSampler::calibrate_adc()
 {
     auto wait_for_calibration_to_end_or_throw_if_failure{[]() {
         auto poller{jungles::freertos::make_poller<1, 5>()};
@@ -85,7 +85,7 @@ void ThreadedAudioSampler::calibrate()
     delay_before_enabling();
 }
 
-void ThreadedAudioSampler::enable()
+void ThreadedAudioSampler::enable_adc()
 {
     auto wait_for_adc_to_start_or_throw_if_failure{[]() {
         auto poller{jungles::freertos::make_poller<1, 5>()};

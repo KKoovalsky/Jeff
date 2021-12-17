@@ -50,8 +50,8 @@ class ThreadedAudioSampler : public AudioSamplerInterface
 
   private:
     void configure_dma();
-    static void calibrate();
-    static void enable();
+    static void calibrate_adc();
+    static void enable_adc();
 
     void send_new_batch_of_samples_to_active();
     static int convert_sample(uint16_t raw_sample);
