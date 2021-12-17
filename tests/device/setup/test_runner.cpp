@@ -17,7 +17,7 @@ extern int test_main();
 
 extern "C" void app_main()
 {
-    jungles::freertos::thread t{std::string("test_runner"), 2048, 5};
+    jungles::freertos::thread t{std::string("test_runner"), 1024, 5};
     t.start([]() {
         try
         {
