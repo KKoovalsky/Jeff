@@ -21,7 +21,7 @@
 #include "jungles_os_helpers/freertos/poller.hpp"
 
 ThreadedAudioSampler::ThreadedAudioSampler() :
-    worker{"AudioSampler", 1024, osPriorityNormal},
+    worker{"AudioSampler", 1536, osPriorityNormal},
     active{[this](auto&& v) { this->handle_new_batch_of_samples(v); }, message_pump, worker}
 {
     if (singleton_pointer != nullptr)
