@@ -61,7 +61,8 @@ void ThreadedAudioSampler::stop()
     if (!is_started)
         return;
 
-    // TODO: implement
+    disable_adc();
+    disable_dma();
     // TODO: synchronize ending or prevent from calling the IT handler, by disabling IT and clearing the IT flag.
 
     is_started = false;
@@ -138,6 +139,19 @@ void ThreadedAudioSampler::configure_dma()
 
     /* Enable the DMA transfer */
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+}
+
+void ThreadedAudioSampler::disable_dma()
+{
+    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_1);
+    LL_DMA_DisableIT_TC(DMA1, LL_DMA_CHANNEL_1);
+    LL_DMA_ClearFlag_TC1(DMA1);
+}
+
+void ThreadedAudioSampler::disable_adc()
+{
+    LL_ADC_REG_StopConversion(ADC1);
+    LL_ADC_Disable(ADC1);
 }
 
 extern "C" void DMA1_Channel1_IRQHandler(void)
