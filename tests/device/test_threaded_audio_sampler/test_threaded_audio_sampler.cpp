@@ -22,7 +22,6 @@ using namespace std::chrono_literals;
 void test_single_batch_of_samples_is_obtained();
 void test_multiple_instances_can_be_run_one_after_another();
 void test_proper_number_of_samples_is_collected_within_specific_period();
-void test_sampling_frequency_is_stable();
 void test_cant_create_two_instances();
 /** @} */ // End of group ThreadedAudioSamplerTests
 
@@ -87,11 +86,6 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
     unsigned samples_received_after_one_second{samples_received};
 
     TEST_ASSERT_UINT_WITHIN(100, 48000, samples_received_after_one_second);
-}
-
-void test_sampling_frequency_is_stable()
-{
-    TEST_IGNORE();
 }
 
 void test_cant_create_two_instances()
