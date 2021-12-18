@@ -9,10 +9,10 @@
 #include <exception>
 #include <functional>
 
-template<typename SampleIteratorBegin, typename SampleIteratorEnd>
+template<typename BatchOfSamples>
 struct AudioSampler
 {
-    using Handler = std::function<void(SampleIteratorBegin, SampleIteratorEnd)>;
+    using Handler = std::function<void(BatchOfSamples)>;
 
     virtual void set_on_batch_of_samples_received_handler(Handler) = 0;
     virtual void start() = 0;

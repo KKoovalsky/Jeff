@@ -34,7 +34,7 @@ void test_single_batch_of_samples_is_obtained()
     jungles::freertos::flag samples_received_flag;
 
     ThreadedAudioSampler sampler;
-    sampler.set_on_batch_of_samples_received_handler([&](auto, auto) { samples_received_flag.set(); });
+    sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
     sampler.start();
 
     samples_received_flag.wait();
@@ -49,7 +49,7 @@ void test_multiple_instances_can_be_run_one_after_another()
     {
         jungles::freertos::flag samples_received_flag;
         ThreadedAudioSampler sampler;
-        sampler.set_on_batch_of_samples_received_handler([&](auto, auto) { samples_received_flag.set(); });
+        sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
         sampler.start();
         samples_received_flag.wait();
         sampler.stop();
@@ -60,7 +60,7 @@ void test_multiple_instances_can_be_run_one_after_another()
     {
         jungles::freertos::flag samples_received_flag;
         ThreadedAudioSampler sampler;
-        sampler.set_on_batch_of_samples_received_handler([&](auto, auto) { samples_received_flag.set(); });
+        sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
         sampler.start();
         samples_received_flag.wait();
         sampler.stop();
@@ -76,8 +76,7 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
     unsigned samples_received{0};
 
     ThreadedAudioSampler sampler;
-    sampler.set_on_batch_of_samples_received_handler(
-        [&](auto beg, auto end) { samples_received += std::distance(beg, end); });
+    sampler.set_on_batch_of_samples_received_handler([&](auto samples) { samples_received += samples.size(); });
     sampler.start();
 
     os::wait(1s);

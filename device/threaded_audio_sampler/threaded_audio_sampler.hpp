@@ -9,6 +9,7 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "audio_sampler.hpp"
 
@@ -23,9 +24,8 @@ constexpr inline unsigned SampleBufferSize{RawSampleBufferSize / 2};
 
 using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;
 
-using SampleBuffer = std::array<int, SampleBufferSize>;
-using SampleIterator = typename SampleBuffer::const_iterator;
-using AudioSamplerInterface = AudioSampler<SampleIterator, SampleIterator>;
+using SampleBuffer = std::vector<int>;
+using AudioSamplerInterface = AudioSampler<SampleBuffer>;
 
 extern "C" void DMA1_Channel1_IRQHandler();
 
