@@ -10,6 +10,7 @@ set(cube_core_sources
     usart.c
     adc.c
     dma.c
+    tim.c
 )
 list(TRANSFORM cube_core_sources PREPEND ${cube_core_src_dir})
 
@@ -33,6 +34,7 @@ set(cube_drivers_sources
     stm32l4xx_hal_uart.c
     stm32l4xx_ll_gpio.c
     stm32l4xx_ll_adc.c
+    stm32l4xx_ll_tim.c
 )
 list(TRANSFORM cube_drivers_sources PREPEND ${cube_drivers_src_dir})
 
