@@ -10,6 +10,7 @@
 #include "threaded_audio_sampler.hpp"
 
 #include "jungles_os_helpers/freertos/flag.hpp"
+#include "serial_logger.hpp"
 
 #include "unity.h"
 
