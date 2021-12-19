@@ -84,7 +84,7 @@ function(ProvideJunglesOsHelpers)
     include(FetchContent)
     FetchContent_Declare(JunglesOsHelpers
         GIT_REPOSITORY https://github.com/KKoovalsky/JunglesOsHelpers.git
-        GIT_TAG e506c2c7a71e1007f8c52a5e2683f8a4e87e7735
+        GIT_TAG 1c6d5e6c4436e0e04d9a6599af5c1a12296a391b
     )
 
     FetchContent_MakeAvailable(JunglesOsHelpers)

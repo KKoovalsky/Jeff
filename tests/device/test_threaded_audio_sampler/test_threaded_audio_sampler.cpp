@@ -90,5 +90,14 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
 
 void test_cant_create_two_instances()
 {
-    TEST_IGNORE();
+    bool is_failed{false};
+    try
+    {
+        ThreadedAudioSampler sampler;
+        ThreadedAudioSampler{};
+    } catch (const ThreadedAudioSampler::Error&)
+    {
+        is_failed = true;
+    }
+    TEST_ASSERT_TRUE(is_failed);
 }
