@@ -189,7 +189,12 @@ void ThreadedAudioSampler::disable_dma()
 
 void ThreadedAudioSampler::disable_adc()
 {
+    auto delay_before_disabling{[]() {
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }};
+
     LL_ADC_REG_StopConversion(ADC1);
+    delay_before_disabling();
     LL_ADC_Disable(ADC1);
 }
 
