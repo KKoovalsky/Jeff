@@ -44,7 +44,6 @@ set(compile_cxx_flags "${basic_flags} ${extra_cxx_flags}")
 string(CONCAT extra_linker_flags
     " -specs=nosys.specs"
     " -Wl,--gc-sections"
-    " -lc -lm -lnosys"
 )
 
 set(linker_flags "${basic_flags} ${extra_linker_flags}")
