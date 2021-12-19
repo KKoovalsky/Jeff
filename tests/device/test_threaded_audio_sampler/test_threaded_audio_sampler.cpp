@@ -85,7 +85,7 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
 
     unsigned samples_received_after_one_second{samples_received};
 
-    TEST_ASSERT_UINT_WITHIN(100, 48000, samples_received_after_one_second);
+    TEST_ASSERT_UINT_WITHIN(100, 44100, samples_received_after_one_second);
 }
 
 void test_cant_create_two_instances()
