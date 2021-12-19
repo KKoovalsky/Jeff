@@ -16,6 +16,7 @@
 #include "threaded_audio_sampler.hpp"
 
 #include "adc.h"
+#include "tim.h"
 
 #include "cmsis_os2.h"
 #include "jungles_os_helpers/freertos/poller.hpp"
@@ -45,10 +46,12 @@ ThreadedAudioSampler::ThreadedAudioSampler() :
     singleton_pointer = this;
 
     MX_ADC1_Init();
+    MX_TIM6_Init();
 }
 
 ThreadedAudioSampler::~ThreadedAudioSampler()
 {
+    LL_TIM_DeInit(TIM6);
     LL_ADC_DeInit(ADC1);
 
     vEventGroupDelete(audio_sampler_events);
@@ -73,6 +76,8 @@ void ThreadedAudioSampler::start()
     calibrate_adc();
     enable_adc();
 
+    LL_TIM_EnableCounter(TIM6);
+
     is_started = true;
 }
 
@@ -88,6 +93,8 @@ void ThreadedAudioSampler::stop()
     auto wait_for_thread_to_finish{[this]() {
         xSemaphoreTake(this->thread_finished_semaphore, portMAX_DELAY);
     }};
+
+    LL_TIM_DisableCounter(TIM6);
 
     disable_adc();
     disable_dma();
