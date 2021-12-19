@@ -37,6 +37,8 @@ set(cube_generated_files_dir "${PROJECT_ROOT_DIR}/device/cube/Jeff")
 
     target_link_libraries(${target_name} PRIVATE device_specific cube)
 
+    target_sources(${target_name} PRIVATE $<TARGET_OBJECTS:custom_alloc>)
+
 endfunction()
 
 function(GenerateHexAfterBuild target_name)
@@ -83,6 +85,10 @@ function(CreateDeviceSpecificLibraries)
     set(startup_file "${cube_generated_files_dir}/startup_stm32l432xx.s")
 
     add_library(device_specific STATIC ${startup_file})
+
+    set(device_dir "${PROJECT_ROOT_DIR}/device")
+    set(custom_alloc_file "${device_dir}/custom_alloc.cpp")
+    add_library(custom_alloc OBJECT ${custom_alloc_file})
 
 endfunction()
 
