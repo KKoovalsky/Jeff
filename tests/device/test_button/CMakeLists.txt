@@ -1,0 +1,3 @@
+add_executable(test_button_semi_automatic test_button_semi_automatic.cpp)
+PromoteToDeviceTestExecutable(test_button_semi_automatic test_button_semi_automatic)
+target_link_libraries(test_button_semi_automatic PRIVATE button serial_logger)

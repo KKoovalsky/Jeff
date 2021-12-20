@@ -35,6 +35,7 @@ add_subdirectory(cube)
 add_subdirectory(os_utils)
 add_subdirectory(serial_logger)
 add_subdirectory(threaded_audio_sampler)
+add_subdirectory(button)
 
 add_executable(firmware main.cpp)
 MakeDeviceExecutable(firmware)
