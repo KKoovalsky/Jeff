@@ -18,7 +18,6 @@
 void test_single_press_is_awaited();
 void test_multiple_presses_are_awaited();
 void test_multiple_presses_are_awaited_for_multiple_instances();
-void test_one_instance_can_run_at_a_time();
 /** @} */ // End of group TestButtonSemiAutomatic
 
 // =====================================================================================================================
@@ -58,10 +57,6 @@ void test_multiple_presses_are_awaited()
 
 void test_multiple_presses_are_awaited_for_multiple_instances()
 {
-    TEST_IGNORE();
-}
 
-void test_one_instance_can_run_at_a_time()
-{
     TEST_IGNORE();
 }
