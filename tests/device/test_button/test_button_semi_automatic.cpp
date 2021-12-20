@@ -57,6 +57,30 @@ void test_multiple_presses_are_awaited()
 
 void test_multiple_presses_are_awaited_for_multiple_instances()
 {
+    SerialLogger logger;
 
-    TEST_IGNORE();
+    logger.log(LogLevel::info)
+        << "Testing for multiple, simple button pressing, for two instances created in a row... ";
+
+    logger.log(LogLevel::info) << "For the first instance...";
+    {
+        Button button;
+        logger.log(LogLevel::info) << "Press the button once...";
+        auto is_button_pressed_first_time{button.wait_for_press(15s)};
+        TEST_ASSERT_TRUE(is_button_pressed_first_time);
+        logger.log(LogLevel::info) << "Press the button for the second time now...";
+        auto is_button_pressed_second_time{button.wait_for_press(15s)};
+        TEST_ASSERT_TRUE(is_button_pressed_second_time);
+    }
+
+    logger.log(LogLevel::info) << "For the second instance...";
+    {
+        Button button;
+        logger.log(LogLevel::info) << "Press the button once...";
+        auto is_button_pressed_first_time{button.wait_for_press(15s)};
+        TEST_ASSERT_TRUE(is_button_pressed_first_time);
+        logger.log(LogLevel::info) << "Press the button for the second time now...";
+        auto is_button_pressed_second_time{button.wait_for_press(15s)};
+        TEST_ASSERT_TRUE(is_button_pressed_second_time);
+    }
 }
