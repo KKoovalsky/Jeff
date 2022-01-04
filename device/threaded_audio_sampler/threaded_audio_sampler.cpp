@@ -138,7 +138,7 @@ void ThreadedAudioSampler::enable_adc()
     // TODO: handle errors from LL_ADC_IsActiveFlag_OVR(ADC1) (overrun detection).
 }
 
-int ThreadedAudioSampler::convert_sample(uint16_t raw_sample)
+float ThreadedAudioSampler::convert_sample(uint16_t raw_sample)
 {
     static constexpr unsigned reference_voltage_in_millivolts{3300};
     unsigned sample_in_millivolts{
@@ -150,10 +150,8 @@ int ThreadedAudioSampler::convert_sample(uint16_t raw_sample)
     static constexpr unsigned maximum_negative_amplitude{dc_offset_in_millivolts - 0};
     static constexpr unsigned maximum_amplitude{std::max(maximum_positive_amplitude, maximum_negative_amplitude)};
 
-    static constexpr int normalizing_factor_to_int_max{std::numeric_limits<int>::max() / maximum_amplitude};
-
     auto sample_in_millivolts_without_dc_offset{static_cast<int>(sample_in_millivolts - dc_offset_in_millivolts)};
-    int sample{sample_in_millivolts_without_dc_offset * normalizing_factor_to_int_max};
+    auto sample{static_cast<float>(sample_in_millivolts_without_dc_offset) / maximum_amplitude};
     return sample;
 }
 

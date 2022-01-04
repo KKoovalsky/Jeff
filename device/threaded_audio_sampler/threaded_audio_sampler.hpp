@@ -20,11 +20,10 @@
 #include "semphr.h"
 
 constexpr inline unsigned RawSampleBufferSize{128};
-constexpr inline unsigned SampleBufferSize{RawSampleBufferSize / 2};
 
 using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;
 
-using SampleBuffer = std::vector<int>;
+using SampleBuffer = std::vector<float>;
 using AudioSamplerInterface = AudioSampler<SampleBuffer>;
 
 extern "C" void DMA1_Channel1_IRQHandler();
@@ -57,7 +56,7 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     static void enable_adc();
     static void disable_adc();
 
-    static int convert_sample(uint16_t raw_sample);
+    static float convert_sample(uint16_t raw_sample);
     void thread_code();
 
     static inline ThreadedAudioSampler* singleton_pointer{nullptr};
