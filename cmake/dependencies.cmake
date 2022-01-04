@@ -110,3 +110,14 @@ function(ProvideQDspLibrary)
     target_compile_definitions(libq INTERFACE Q_DONT_USE_THREADS)
 
 endfunction()
+
+function(ProvideJunglesCppUtils)
+
+    include(FetchContent)
+    FetchContent_Declare(
+        JunglesCppUtils
+        GIT_REPOSITORY https://github.com/KKoovalsky/JunglesCppUtils.git
+        GIT_TAG 58c3e4ea9edbc00f75479ccfbd4acc331b7370ee)
+    FetchContent_MakeAvailable(JunglesCppUtils)
+
+endfunction()
