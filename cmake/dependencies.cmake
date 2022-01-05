@@ -117,7 +117,7 @@ function(ProvideJunglesCppUtils)
     FetchContent_Declare(
         JunglesCppUtils
         GIT_REPOSITORY https://github.com/KKoovalsky/JunglesCppUtils.git
-        GIT_TAG 58c3e4ea9edbc00f75479ccfbd4acc331b7370ee)
+        GIT_TAG 8cb91f42de97b3b11c973284ebb5b8dcc9b37cd2)
     FetchContent_MakeAvailable(JunglesCppUtils)
 
 endfunction()
