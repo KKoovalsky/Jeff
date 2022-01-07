@@ -9,15 +9,17 @@
 
 #include "unity.h"
 
-#include "jungles/cross_correlation.hpp"
 #include "jungles_os_helpers/freertos/flag.hpp"
-#include "q/synth/sin.hpp"
+
+#include "arm_math.h"
+
+#include <cmath>
+#include <numeric>
 
 using Signal = std::vector<float>;
 
-static Signal
-generate_sine_wave(unsigned signal_frequency_hz, unsigned number_of_samples, unsigned sampling_frequency_hz);
-static void assert_signal_matches_pattern(const Signal& signal, const Signal& pattern);
+static void
+assert_signal_contains_single_harmonic(Signal& signal, unsigned harmonic_hz, unsigned sampling_frequency_hz);
 
 void assert_input_signal_matches_sine(unsigned signal_frequency_hz)
 {
@@ -46,46 +48,62 @@ void assert_input_signal_matches_sine(unsigned signal_frequency_hz)
     collection_finished_flag.wait();
     sampler.stop();
 
-    auto expected_signal{generate_sine_wave(signal_frequency_hz, number_of_samples, sampling_frequency_hz)};
-
-    assert_signal_matches_pattern(collected_samples, expected_signal);
+    assert_signal_contains_single_harmonic(collected_samples, signal_frequency_hz, sampling_frequency_hz);
 }
 
-static Signal
-generate_sine_wave(unsigned signal_frequency_hz, unsigned number_of_samples, unsigned sampling_frequency_hz)
+static void
+assert_signal_contains_single_harmonic(Signal& signal, unsigned int harmonic_hz, unsigned sampling_frequency_hz)
 {
-    namespace q = cycfi::q;
+    auto to_fft_size{[](unsigned value) {
+        static constexpr unsigned powers_of_two[] = {
+            1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
+        auto match_it{std::upper_bound(std::begin(powers_of_two), std::end(powers_of_two), value)};
+        return *std::prev(match_it);
+    }};
 
-    Signal sine_wave(number_of_samples);
+    auto to_harmonic_index_in_audio_fft{[sampling_frequency_hz](unsigned fft_length, unsigned harmonic_hz) {
+        auto fft_max_frequency{static_cast<float>(sampling_frequency_hz) / 2.0};
+        return static_cast<unsigned>(std::round(harmonic_hz / fft_max_frequency * fft_length));
+    }};
 
-    q::phase_iterator phase_it{q::frequency{static_cast<double>(signal_frequency_hz)}, sampling_frequency_hz};
-    for (unsigned i{0}; i < number_of_samples; ++i)
-        sine_wave[i] = q::sin(phase_it++);
+    auto compute_fft{[&to_fft_size](Signal& signal) {
+        arm_rfft_fast_instance_f32 fft_instance = {};
+        auto fft_size{to_fft_size(signal.size())};
+        arm_rfft_fast_init_f32(&fft_instance, fft_size);
 
-    return sine_wave;
-}
+        Signal fft(fft_size);
+        uint8_t no_ifft{0};
+        arm_rfft_fast_f32(&fft_instance, signal.data(), fft.data(), no_ifft);
 
-static void assert_signal_matches_pattern(const Signal& signal, const Signal& pattern)
-{
-    auto signal_beg{std::begin(signal)};
-    auto signal_end{std::next(signal_beg, pattern.size())};
+        std::transform(std::begin(fft), std::end(fft), std::begin(fft), [](auto v) { return std::fabs(v); });
 
-    unsigned offset{static_cast<unsigned>(std::distance(signal_beg, signal_end))};
+        return fft;
+    }};
 
-    auto cross_correlation_function{jungles::calculate_correlation_function(
-        signal_beg, signal_end, std::begin(pattern), std::end(pattern), offset)};
+    auto get_sum_around{[]<typename Container>(const Container& container, unsigned index, unsigned neighbour_count) {
+        auto index_begin{static_cast<int>(index) - static_cast<int>(neighbour_count)};
+        auto index_end{index + neighbour_count + 1};
+        if (index_begin < 0)
+            index_begin = 0;
+        if (index_end > container.size())
+            index_end = container.size();
 
-    auto cross_correlation_function_begin{std::begin(cross_correlation_function)};
-    auto cross_correlation_function_end{std::end(cross_correlation_function)};
+        auto begin{std::next(std::begin(container), index_begin)};
+        auto end{std::next(std::begin(container), index_end)};
 
-    auto maximum{*std::max_element(cross_correlation_function_begin, cross_correlation_function_end)};
-    auto minimum{*std::min_element(cross_correlation_function_begin, cross_correlation_function_end)};
+        using Value = typename Container::value_type;
+        auto zero{Value{}};
+        return std::accumulate(begin, end, zero);
+    }};
 
-    SerialLogger{}.log(LogLevel::info) << "Cross-correlation factor: maximum: " << maximum << ", minimum: " << minimum;
+    auto fft{compute_fft(signal)};
+    auto harmonic_index{to_harmonic_index_in_audio_fft(fft.size(), harmonic_hz)};
+    auto signal_magnitude{get_sum_around(fft, harmonic_index, 1)};
 
-    auto is_correlated{std::any_of(cross_correlation_function_begin,
-                                   cross_correlation_function_end,
-                                   [](auto coefficient) { return std::abs(coefficient) >= 0.9; })};
+    auto iterator_ignoring_dc_offset{std::next(std::begin(fft), 1)};
+    auto noise_magnitude{std::accumulate(iterator_ignoring_dc_offset, std::end(fft), -signal_magnitude)};
+    auto snr{signal_magnitude / noise_magnitude};
 
-    TEST_ASSERT_TRUE(is_correlated);
+    SerialLogger{}.log(LogLevel::info) << "SNR: " << snr;
+    TEST_ASSERT(snr > 0.5);
 }

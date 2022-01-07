@@ -91,33 +91,3 @@ function(ProvideJunglesOsHelpers)
     target_link_libraries(JunglesOsHelpers INTERFACE freertos)
 
 endfunction()
-
-
-function(ProvideQDspLibrary)
-
-    option(Q_BUILD_EXAMPLES "Build Q library examples" OFF)
-    option(Q_BUILD_TEST "Build Q library tests" OFF)
-    option(Q_BUILD_IO "Build Q IO library" OFF)
-
-
-    include(FetchContent)
-    FetchContent_Declare(QDspLibrary
-        GIT_REPOSITORY https://github.com/cycfi/q.git
-        GIT_TAG bae1b93db5d85427b28054c604f838a61b783a26
-    )
-
-    FetchContent_MakeAvailable(QDspLibrary)
-    target_compile_definitions(libq INTERFACE Q_DONT_USE_THREADS)
-
-endfunction()
-
-function(ProvideJunglesCppUtils)
-
-    include(FetchContent)
-    FetchContent_Declare(
-        JunglesCppUtils
-        GIT_REPOSITORY https://github.com/KKoovalsky/JunglesCppUtils.git
-        GIT_TAG 8cb91f42de97b3b11c973284ebb5b8dcc9b37cd2)
-    FetchContent_MakeAvailable(JunglesCppUtils)
-
-endfunction()

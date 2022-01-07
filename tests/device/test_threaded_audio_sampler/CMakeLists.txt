@@ -20,7 +20,7 @@ target_link_libraries(test_threaded_audio_sampler PRIVATE
 
 add_library(test_sample_sine test_sample_sine.cpp)
 target_link_libraries(test_sample_sine PRIVATE
-    unity threaded_audio_sampler serial_logger libq jungles::os_helpers jungles::cpp_utils)
+    unity threaded_audio_sampler serial_logger jungles::os_helpers cmsis_dsp_float)
 
 CreateSineWaveSampleTest(test_sample_sine_100hz)
 CreateSineWaveSampleTest(test_sample_sine_1khz)
