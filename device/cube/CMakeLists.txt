@@ -16,3 +16,20 @@ target_compile_options(cube PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>)
 
 add_library(freertos_config INTERFACE)
 target_include_directories(freertos_config INTERFACE Jeff/Core/Inc)
+
+set(dsp_lib_dir ${CMAKE_CURRENT_LIST_DIR}/Jeff/Drivers/CMSIS/DSP)
+
+add_library(cmsis_dsp_base INTERFACE)
+target_include_directories(cmsis_dsp_base INTERFACE
+    ${dsp_lib_dir}/Include
+    Jeff/Drivers/CMSIS/Include
+)
+target_compile_definitions(cmsis_dsp_base INTERFACE __PROGRAM_START)
+
+add_library(cmsis_dsp INTERFACE)
+set(dsp_lib_path ${dsp_lib_dir}/Lib/GCC/libarm_cortexM4l_math.a)
+target_link_libraries(cmsis_dsp INTERFACE cmsis_dsp_base ${dsp_lib_path})
+
+add_library(cmsis_dsp_float INTERFACE)
+set(dsp_lib_float_path ${dsp_lib_dir}/Lib/GCC/libarm_cortexM4lf_math.a)
+target_link_libraries(cmsis_dsp_float INTERFACE cmsis_dsp_base ${dsp_lib_float_path})
