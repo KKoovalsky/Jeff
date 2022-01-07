@@ -96,9 +96,21 @@ assert_signal_contains_single_harmonic(Signal& signal, unsigned int harmonic_hz,
         return std::accumulate(begin, end, zero);
     }};
 
+    // The longer the FFT the more indices in FFT the harmonic will occupy. This function will calculate the spread
+    // in one side. So e.g. if the result is 1, then the harmonic occupies 3 indices; if 2 then the harmonic occupies
+    // 5 indices (the actual middle index + 2 neighbours on the left side + 2 neighbours on the right side); if 3, then
+    // 7 indices ...
+    auto get_harmonic_fft_spread_count{[](unsigned fft_size) {
+        if (fft_size > 1024)
+            return 2;
+        else
+            return 1;
+    }};
+
     auto fft{compute_fft(signal)};
     auto harmonic_index{to_harmonic_index_in_audio_fft(fft.size(), harmonic_hz)};
-    auto signal_magnitude{get_sum_around(fft, harmonic_index, 1)};
+    auto spread_count{get_harmonic_fft_spread_count(fft.size())};
+    auto signal_magnitude{get_sum_around(fft, harmonic_index, spread_count)};
 
     auto iterator_ignoring_dc_offset{std::next(std::begin(fft), 1)};
     auto noise_magnitude{std::accumulate(iterator_ignoring_dc_offset, std::end(fft), -signal_magnitude)};
