@@ -91,3 +91,15 @@ function(ProvideJunglesOsHelpers)
     target_link_libraries(JunglesOsHelpers INTERFACE freertos)
 
 endfunction()
+
+function(ProvideJunglesCppUtils)
+
+    include(FetchContent)
+    FetchContent_Declare(
+        JunglesCppUtils
+        GIT_REPOSITORY https://github.com/KKoovalsky/JunglesCppUtils.git
+        GIT_TAG 8429958f77db10b3e4bab4eceebd7af04ff9a5fc)
+    FetchContent_MakeAvailable(JunglesCppUtils)
+
+endfunction()
+

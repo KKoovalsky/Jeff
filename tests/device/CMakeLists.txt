@@ -8,6 +8,7 @@
 include(../../cmake/device_tests.cmake)
 
 ProvideUnity()
+ProvideJunglesCppUtils()
 
 add_subdirectory(setup)
 add_subdirectory(test_serial_logger)
