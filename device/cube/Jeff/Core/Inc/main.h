@@ -31,6 +31,7 @@ extern "C" {
 #include "stm32l4xx_hal.h"
 
 #include "stm32l4xx_ll_adc.h"
+#include "stm32l4xx_ll_dac.h"
 #include "stm32l4xx_ll_dma.h"
 #include "stm32l4xx_ll_tim.h"
 #include "stm32l4xx_ll_system.h"
