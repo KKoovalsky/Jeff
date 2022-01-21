@@ -1,0 +1,3 @@
+add_library(sampling_trigger_timer_impl STATIC sampling_trigger_timer_impl.cpp)
+target_include_directories(sampling_trigger_timer_impl PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(sampling_trigger_timer_impl PUBLIC jeff_common cube)
