@@ -9,6 +9,7 @@
 
 #include "audio_dac_impl.hpp"
 #include "os_waiters.hpp"
+#include "sampling_trigger_timer_impl.hpp"
 
 using Signal = std::array<float, AudioDacBufferSize>;
 
@@ -19,7 +20,8 @@ generate_sine_wave(unsigned signal_frequency_hz, unsigned number_of_samples, uns
 
 void test_audio_dac_generates_sine_with_1khz_frequency()
 {
-    AudioDacImpl dac;
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    AudioDacImpl dac{sampling_trigger_timer};
 
     constexpr unsigned signal_frequency_hz{1000};
     constexpr unsigned output_frequency_hz{44100};
