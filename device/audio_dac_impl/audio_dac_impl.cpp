@@ -10,6 +10,7 @@
 #include "os_waiters.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 enum class AudioDacEvents : EventBits_t
 {
@@ -126,9 +127,14 @@ AudioDacBatchOfSamples AudioDacImpl::get_new_samples()
         return std::make_unique<AudioDacBuffer>();
 }
 
-uint16_t AudioDacImpl::convert_sample(float)
+uint16_t AudioDacImpl::convert_sample(float sample)
 {
-    return 0;
+    static constexpr unsigned max_dac_value{__LL_DAC_DIGITAL_SCALE(LL_DAC_RESOLUTION_12B)};
+
+    float sample_rescaled_from_plus_minus_one_to_zero_one_range{(sample + 1.0f) / 2.0f};
+    float final_converted_sample{sample_rescaled_from_plus_minus_one_to_zero_one_range * max_dac_value};
+    auto final_converted_sample_rounded{static_cast<uint16_t>(std::lround(final_converted_sample))};
+    return final_converted_sample_rounded;
 }
 
 extern "C" void DMA1_Channel3_IRQHandler(void)

@@ -10,40 +10,41 @@
 #include "audio_dac_impl.hpp"
 #include "os_waiters.hpp"
 #include "sampling_trigger_timer_impl.hpp"
+#include "serial_logger.hpp"
+
+#include "q/synth/sin.hpp"
 
 using Signal = std::array<float, AudioDacBufferSize>;
 
 using namespace std::chrono_literals;
 
-static Signal
-generate_sine_wave(unsigned signal_frequency_hz, unsigned number_of_samples, unsigned sampling_frequency_hz);
+[[noreturn]] void test_audio_dac_generates_sine_with_1khz_frequency();
 
 void test_audio_dac_generates_sine_with_1khz_frequency()
 {
+    constexpr unsigned signal_frequency_hz{1000};
+
+    SerialLogger logger;
+    logger.log(LogLevel::info) << "Starting continuous generation of " << signal_frequency_hz << " Hz sine wave...";
+
     SamplingTriggerTimerImpl sampling_trigger_timer;
     AudioDacImpl dac{sampling_trigger_timer};
 
-    constexpr unsigned signal_frequency_hz{1000};
     constexpr unsigned output_frequency_hz{44100};
-    constexpr auto number_of_samples{static_cast<unsigned>(output_frequency_hz / signal_frequency_hz)};
-    auto sine_1khz_single_period{generate_sine_wave(signal_frequency_hz, number_of_samples, output_frequency_hz)};
 
-    dac.set_on_stream_update_handler([&]() { return std::make_unique<Signal>(sine_1khz_single_period); });
+    dac.set_on_stream_update_handler([&]() {
+        namespace q = cycfi::q;
+        static q::phase_iterator phase_it{q::frequency{static_cast<double>(signal_frequency_hz)}, output_frequency_hz};
+
+        auto samples{std::make_unique<Signal>()};
+        for (auto& sample : *samples)
+            sample = q::sin(phase_it++);
+
+        return samples;
+    });
 
     dac.start();
 
     while (true)
         os::wait(1s);
-}
-
-static Signal
-generate_sine_wave(unsigned signal_frequency_hz, unsigned number_of_samples, unsigned sampling_frequency_hz)
-
-{
-    //    namespace q = cycfi::q;
-    //    Signal sine_wave(number_of_samples);
-    //    q::phase_iterator phase_it{q::frequency{static_cast<double>(signal_frequency_hz)}, sampling_frequency_hz};
-    //    for (unsigned i{0}; i < number_of_samples; ++i)
-    //        +sine_wave[i] = q::sin(phase_it++);
-    return Signal{};
 }
