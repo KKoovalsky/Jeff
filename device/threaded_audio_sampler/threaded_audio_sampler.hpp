@@ -17,7 +17,6 @@
 
 #include "FreeRTOS.h"
 #include "event_groups.h"
-#include "semphr.h"
 
 static constexpr inline unsigned AudioSamplerBufferSize{64};
 using AudioSamplerBuffer = std::array<float, AudioSamplerBufferSize>;
@@ -72,7 +71,6 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     bool is_started{false};
 
     EventGroupHandle_t audio_sampler_events;
-    SemaphoreHandle_t thread_finished_semaphore;
 
     using Thread = jungles::freertos::thread;
     Thread worker;

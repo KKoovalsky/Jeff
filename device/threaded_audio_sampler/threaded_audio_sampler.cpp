@@ -36,9 +36,7 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
 }
 
 ThreadedAudioSampler::ThreadedAudioSampler() :
-    audio_sampler_events{xEventGroupCreate()},
-    thread_finished_semaphore{xSemaphoreCreateBinary()},
-    worker{"AudioSampler", 1536, osPriorityNormal}
+    audio_sampler_events{xEventGroupCreate()}, worker{"AudioSampler", 1536, osPriorityNormal}
 {
     if (singleton_pointer != nullptr)
         throw Error{"Only one instance can be run at a time!"};
@@ -55,7 +53,6 @@ ThreadedAudioSampler::~ThreadedAudioSampler()
     LL_ADC_DeInit(ADC1);
 
     vEventGroupDelete(audio_sampler_events);
-    vSemaphoreDelete(thread_finished_semaphore);
 
     singleton_pointer = nullptr;
 }
@@ -91,7 +88,7 @@ void ThreadedAudioSampler::stop()
     }};
 
     auto wait_for_thread_to_finish{[this]() {
-        xSemaphoreTake(this->thread_finished_semaphore, portMAX_DELAY);
+        worker.join();
     }};
 
     LL_TIM_DisableCounter(TIM6);
@@ -279,8 +276,6 @@ void ThreadedAudioSampler::thread_code()
             break;
         }
     }
-
-    xSemaphoreGive(thread_finished_semaphore);
 }
 
 ThreadedAudioSampler::Error::Error(const char* message)
