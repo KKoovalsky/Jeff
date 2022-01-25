@@ -8,8 +8,8 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <string>
-#include <vector>
 
 #include "audio_sampler.hpp"
 
@@ -19,12 +19,10 @@
 #include "event_groups.h"
 #include "semphr.h"
 
-constexpr inline unsigned RawSampleBufferSize{128};
-
-using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;
-
-using SampleBuffer = std::vector<float>;
-using AudioSamplerInterface = AudioSampler<SampleBuffer>;
+static constexpr inline unsigned AudioSamplerBufferSize{64};
+using AudioSamplerBuffer = std::array<float, AudioSamplerBufferSize>;
+using AudioSamplerBatchOfSamples = std::unique_ptr<AudioSamplerBuffer>;
+using AudioSamplerInterface = AudioSampler<AudioSamplerBatchOfSamples>;
 
 extern "C" void DMA1_Channel1_IRQHandler();
 
@@ -60,6 +58,9 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     void thread_code();
 
     static inline ThreadedAudioSampler* singleton_pointer{nullptr};
+
+    static constexpr inline unsigned RawSampleBufferSize{AudioSamplerBufferSize * 2};
+    using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;
 
     RawSampleBuffer raw_sample_buffer = {};
 

@@ -253,9 +253,8 @@ void ThreadedAudioSampler::thread_code()
 
     auto convert_samples_and_call_sample_batch_handler{[this](auto raw_samples_begin, auto raw_samples_end) {
         // TODO: We might copy the raw_samples_* range before handling, to prevent from races.
-        SampleBuffer samples;
-        samples.reserve(std::distance(raw_samples_begin, raw_samples_end));
-        std::ranges::transform(raw_samples_begin, raw_samples_end, std::back_inserter(samples), convert_sample);
+        auto samples{std::make_unique<AudioSamplerBuffer>()};
+        std::ranges::transform(raw_samples_begin, raw_samples_end, samples->begin(), convert_sample);
         if (this->on_samples_received_handler)
             this->on_samples_received_handler(std::move(samples));
     }};
