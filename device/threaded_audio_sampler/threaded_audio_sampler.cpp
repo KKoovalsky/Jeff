@@ -16,7 +16,6 @@
 #include "threaded_audio_sampler.hpp"
 
 #include "adc.h"
-#include "tim.h"
 
 #include "cmsis_os2.h"
 #include "jungles_os_helpers/freertos/poller.hpp"
@@ -35,8 +34,10 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-ThreadedAudioSampler::ThreadedAudioSampler() :
-    audio_sampler_events{xEventGroupCreate()}, worker{"AudioSampler", 1536, osPriorityNormal}
+ThreadedAudioSampler::ThreadedAudioSampler(SamplingTriggerTimer& sampling_trigger_timer) :
+    sampling_trigger_timer(sampling_trigger_timer),
+    audio_sampler_events{xEventGroupCreate()},
+    worker{"AudioSampler", 1536, osPriorityNormal}
 {
     if (singleton_pointer != nullptr)
         throw Error{"Only one instance can be run at a time!"};
@@ -44,12 +45,10 @@ ThreadedAudioSampler::ThreadedAudioSampler() :
     singleton_pointer = this;
 
     MX_ADC1_Init();
-    MX_TIM6_Init();
 }
 
 ThreadedAudioSampler::~ThreadedAudioSampler()
 {
-    LL_TIM_DeInit(TIM6);
     LL_ADC_DeInit(ADC1);
 
     vEventGroupDelete(audio_sampler_events);
@@ -73,7 +72,7 @@ void ThreadedAudioSampler::start()
     calibrate_adc();
     enable_adc();
 
-    LL_TIM_EnableCounter(TIM6);
+    sampling_trigger_timer.start();
 
     is_started = true;
 }
@@ -91,7 +90,7 @@ void ThreadedAudioSampler::stop()
         worker.join();
     }};
 
-    LL_TIM_DisableCounter(TIM6);
+    sampling_trigger_timer.stop();
 
     disable_adc();
     disable_dma();

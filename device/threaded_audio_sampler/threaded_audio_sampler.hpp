@@ -12,6 +12,7 @@
 #include <string>
 
 #include "audio_sampler.hpp"
+#include "sampling_trigger_timer.hpp"
 
 #include "jungles_os_helpers/freertos/thread.hpp"
 
@@ -28,7 +29,7 @@ extern "C" void DMA1_Channel1_IRQHandler();
 class ThreadedAudioSampler : public AudioSamplerInterface
 {
   public:
-    explicit ThreadedAudioSampler();
+    explicit ThreadedAudioSampler(SamplingTriggerTimer&);
     ~ThreadedAudioSampler() override;
 
     void set_on_batch_of_samples_received_handler(Handler) override;
@@ -57,6 +58,8 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     void thread_code();
 
     static inline ThreadedAudioSampler* singleton_pointer{nullptr};
+
+    SamplingTriggerTimer &sampling_trigger_timer;
 
     static constexpr inline unsigned RawSampleBufferSize{AudioSamplerBufferSize * 2};
     using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;

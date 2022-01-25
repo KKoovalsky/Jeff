@@ -14,6 +14,8 @@
 
 #include "unity.h"
 
+#include "sampling_trigger_timer_impl.hpp"
+
 using namespace std::chrono_literals;
 
 /**
@@ -34,7 +36,8 @@ void test_single_batch_of_samples_is_obtained()
 {
     jungles::freertos::flag samples_received_flag;
 
-    ThreadedAudioSampler sampler;
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer};
     sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
     sampler.start();
 
@@ -49,7 +52,8 @@ void test_multiple_instances_can_be_run_one_after_another()
 {
     {
         jungles::freertos::flag samples_received_flag;
-        ThreadedAudioSampler sampler;
+        SamplingTriggerTimerImpl sampling_trigger_timer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer};
         sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
         sampler.start();
         samples_received_flag.wait();
@@ -60,7 +64,8 @@ void test_multiple_instances_can_be_run_one_after_another()
 
     {
         jungles::freertos::flag samples_received_flag;
-        ThreadedAudioSampler sampler;
+        SamplingTriggerTimerImpl sampling_trigger_timer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer};
         sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
         sampler.start();
         samples_received_flag.wait();
@@ -76,7 +81,8 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
 
     unsigned samples_received{0};
 
-    ThreadedAudioSampler sampler;
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer};
     sampler.set_on_batch_of_samples_received_handler([&](auto samples) { samples_received += samples->size(); });
     sampler.start();
 
@@ -93,8 +99,9 @@ void test_cant_create_two_instances()
     bool is_failed{false};
     try
     {
-        ThreadedAudioSampler sampler;
-        ThreadedAudioSampler{};
+        SamplingTriggerTimerImpl sampling_trigger_timer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer};
+        ThreadedAudioSampler{sampling_trigger_timer};
     } catch (const ThreadedAudioSampler::Error&)
     {
         is_failed = true;

@@ -4,6 +4,7 @@
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
+#include "sampling_trigger_timer_impl.hpp"
 #include "serial_logger.hpp"
 #include "threaded_audio_sampler.hpp"
 
@@ -33,7 +34,8 @@ void assert_input_signal_matches_sine(unsigned signal_frequency_hz)
     auto number_of_samples{static_cast<unsigned>(number_of_periods * sampling_frequency_hz / signal_frequency_hz)};
     unsigned margin{128};
 
-    ThreadedAudioSampler sampler;
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer};
     std::vector<float> collected_samples;
     collected_samples.reserve(number_of_samples + margin);
 
