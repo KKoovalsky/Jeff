@@ -15,4 +15,10 @@ void wait_milliseconds(unsigned milliseconds_to_wait)
     vTaskDelay(pdMS_TO_TICKS(milliseconds_to_wait));
 }
 
+[[noreturn]] void loop()
+{
+    while (true)
+        vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
 } // namespace os

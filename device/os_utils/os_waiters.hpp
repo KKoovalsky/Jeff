@@ -25,6 +25,9 @@ void wait(Duration duration)
     wait_milliseconds(milliseconds.count());
 }
 
+//! Blocks allowing to run other threads.
+[[noreturn]] void loop();
+
 } // namespace os
 
 #endif /* WAITERS_HPP */
