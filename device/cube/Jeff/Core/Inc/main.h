@@ -71,6 +71,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define ADC1_IN5_A0_Pin LL_GPIO_PIN_0
+#define ADC1_IN5_A0_GPIO_Port GPIOA
+#define LPUART1_TX_A7_Pin LL_GPIO_PIN_2
+#define LPUART1_TX_A7_GPIO_Port GPIOA
+#define DAC1_OUT1_A3_Pin LL_GPIO_PIN_4
+#define DAC1_OUT1_A3_GPIO_Port GPIOA
 #define BUTTON0_Pin LL_GPIO_PIN_12
 #define BUTTON0_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
