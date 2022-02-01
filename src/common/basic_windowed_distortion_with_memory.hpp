@@ -16,9 +16,10 @@
 template<unsigned WindowSize>
 class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemplate<WindowSize>>
 {
-  private:
+  public:
     using BatchOfSamples = BatchOfSamplesTemplate<WindowSize>;
 
+  private:
     static constexpr unsigned ComputationWindowSize{WindowSize * 2};
     using ComputationWindow = std::array<typename BatchOfSamples::value_type, ComputationWindowSize>;
 
