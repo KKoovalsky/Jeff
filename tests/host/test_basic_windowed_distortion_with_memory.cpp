@@ -108,6 +108,46 @@ static const std::initializer_list<TestData> test_data{
 
 } // namespace HardClippingAtBeginningTestData
 
+namespace HardClippingContinousTestData
+{
+static constexpr unsigned WindowSize{4};
+static constexpr float threshold{0.6};
+
+using Input1 = std::vector<float>;
+using Input2 = std::vector<float>;
+using ExpectedOutput = std::vector<float>;
+
+using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+
+using TestData = std::tuple<Input1, Input2, ExpectedOutput>;
+
+static const std::initializer_list<TestData> test_data{
+    {Input1{-0.1f, 0.2f, 0.7f, 0.8f}, Input2{0.3f, -0.2f, 0.7f, -0.1f}, ExpectedOutput{0.3f, -0.2f, 0.48f, -0.1f}},
+    {Input1{0.8f, 0.7f, -0.1f, 0.55f}, Input2{0.2f, -0.2f, 0.9f, 0.7f}, ExpectedOutput{0.2f, -0.2f, 0.54f, 0.54f}},
+    {Input1{0.8f, 0.7f, -0.1f, -0.6f}, Input2{0.38f, -0.38f, 0.9f, 0.7f}, ExpectedOutput{0.38f, -0.36f, 0.54f, 0.54f}},
+    {Input1{0.8f, -0.7f, -0.1f, -0.6f}, Input2{0.45f, -0.38f, 0.9f, 0.7f}, ExpectedOutput{0.42f, -0.36f, 0.54f, 0.54f}},
+    {Input1{0.8f, -0.2f, -0.15f, 0.6f}, Input2{0.45f, -0.26f, 0.8f, 0.2f}, ExpectedOutput{0.36f, -0.26f, 0.48f, 0.2f}},
+    {Input1{0.8f, -0.2f, -0.1f, -0.7f}, Input2{0.45f, -0.2f, 0.8f, -0.3f}, ExpectedOutput{0.42f, -0.2f, 0.48f, -0.3f}},
+    {Input1{0.8f, -0.2f, -0.1f, -0.7f}, Input2{0.5f, -0.2f, -0.8f, -0.3f}, ExpectedOutput{0.42f, -0.2f, -0.48f, -0.3f}},
+    {Input1{0.8f, -0.2f, -0.1f, 0.7f}, Input2{0.5f, -0.2f, -0.8f, -0.3f}, ExpectedOutput{0.42f, -0.2f, -0.48f, -0.3f}},
+    {Input1{-0.9f, -0.6f, -0.3f, -0.1f}, Input2{0.1f, 0.3f, 0.6f, 0.9f}, ExpectedOutput{0.1f, 0.18f, 0.36f, 0.54f}},
+    {Input1{0.9f, 0.6f, 0.3f, 0.1f}, Input2{-0.1f, -0.3f, -0.6f, -0.9f}, ExpectedOutput{-0.1f, -0.18f, -0.36f, -0.54f}},
+    {Input1{0.9f, 0.6f, 0.3f, 0.1f}, Input2{-0.1f, -0.3f, -0.6f, -0.9f}, ExpectedOutput{-0.1f, -0.18f, -0.36f, -0.54f}},
+    {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.18f, -0.1f, -0.18f, -0.54f}},
+    {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.18f, -0.1f, -0.18f, -0.54f}},
+    {Input1{0.1f, 0.3f, 0.1f, -0.2f}, Input2{-0.2f, 0.1f, 0.3f, 0.9f}, ExpectedOutput{-0.18f, 0.1f, 0.18f, 0.54f}},
+    // {Input1{}, Input2{}, ExpectedOutput{}},
+};
+} // namespace HardClippingContinousTestData
+
+template<typename T>
+auto adapt_to_guitar_effect_input(const std::vector<float>& input)
+{
+    T input_adapted;
+    std::copy(std::begin(input), std::end(input), std::begin(input_adapted));
+    return input_adapted;
+}
+
 TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
 {
     SECTION("Signal is hard-clipped at the beginning")
@@ -117,8 +157,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
         Distortion distortion{threshold};
 
         const auto& [input, expected_output]{GENERATE(Catch::Generators::table<Input, ExpectedOutput>(test_data))};
-        Distortion::BatchOfSamples input_adapted;
-        std::copy(std::begin(input), std::end(input), std::begin(input_adapted));
+        auto input_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(input)};
 
         auto result{distortion.apply(std::move(input_adapted))};
         REQUIRE_THAT(result, EqualsSamples(expected_output));
@@ -126,13 +165,25 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
 
     SECTION("Signal is hard-clipped continuously")
     {
+        using namespace HardClippingContinousTestData;
+
+        Distortion distortion{threshold};
+
+        const auto& [input1, input2, expected_output]{
+            GENERATE(Catch::Generators::table<Input1, Input2, ExpectedOutput>(test_data))};
+        auto input1_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(input1)};
+        auto input2_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(input2)};
+
+        distortion.apply(std::move(input1_adapted));
+        auto result{distortion.apply(std::move(input2_adapted))};
+        REQUIRE_THAT(result, EqualsSamples(expected_output));
     }
 
-    SECTION("Threshold cannot be negative")
+    SECTION("Signal is hard-clipped in the long run")
     {
     }
 
-    SECTION("Signal is hard-clipped for the default type")
+    SECTION("Threshold cannot be negative")
     {
     }
 
