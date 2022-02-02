@@ -289,7 +289,11 @@ TEST_CASE("Basic windowed distortion with memory benchmark", "[distortion][!benc
     auto random_samples{generate_random_batch_of_samples(64)};
 
     constexpr unsigned number_of_tests{10240};
-    BENCHMARK("Applying distortion, window size 64")
+
+    std::cout << "\r\nBenchmarking BasicWindowedDistortionWithMemory for " << number_of_tests
+              << " iterations and window size: " << WindowSize << std::endl;
+
+    BENCHMARK("Applying distortion")
     {
         auto i{number_of_tests};
         while (i--)
