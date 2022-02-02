@@ -8,7 +8,7 @@
 
 #include "guitar_effect.hpp"
 
-template <typename BatchOfSamples>
+template<typename BatchOfSamples>
 struct DummyGuitarEffect : GuitarEffect<BatchOfSamples>
 {
     BatchOfSamples apply(BatchOfSamples samples) override

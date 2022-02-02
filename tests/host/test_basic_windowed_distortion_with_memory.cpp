@@ -12,6 +12,7 @@
 #include "catch2/matchers/catch_matchers_templated.hpp"
 
 #include "basic_windowed_distortion_with_memory.hpp"
+#include "guitar_effect.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -199,6 +200,12 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
 
     SECTION("Threshold cannot be negative")
     {
+        static constexpr unsigned WindowSize{4};
+        static constexpr float threshold{-0.001};
+
+        using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+
+        REQUIRE_THROWS_AS(Distortion{threshold}, GuitarEffect<Distortion::BatchOfSamples>::Error);
     }
 
     SECTION("Various thresholds are applied")

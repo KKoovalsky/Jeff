@@ -26,6 +26,9 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
   public:
     explicit BasicWindowedDistortionWithMemory(float threshold) : threshold{threshold}
     {
+        if (threshold < 0.0f)
+            throw Error{"Threshold must not be negative"};
+
         std::fill(std::begin(previous_batch), std::end(previous_batch), 0.0f);
     }
 
@@ -56,6 +59,20 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
     }
 
   private:
+    struct Error : GuitarEffect<BatchOfSamples>::Error
+    {
+        explicit Error(const char* message) : message{message}
+        {
+        }
+
+        [[nodiscard]] virtual const char* what() const noexcept override
+        {
+            return message;
+        }
+
+        const char* message;
+    };
+
     ComputationWindow merge(const BatchOfSamples& batch1, const BatchOfSamples& batch2) const noexcept
     {
         ComputationWindow computation_window;
