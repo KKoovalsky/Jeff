@@ -4,6 +4,7 @@
  * @author      Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
+#include "catch2/benchmark/catch_benchmark.hpp"
 #include "catch2/catch_approx.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators.hpp"
@@ -16,6 +17,8 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
+#include <random>
 #include <string>
 #include <utility>
 
@@ -142,11 +145,22 @@ static const std::initializer_list<TestData> test_data{
 } // namespace HardClippingContinousTestData
 
 template<typename T>
-auto adapt_to_guitar_effect_input(const std::vector<float>& input)
+static auto adapt_to_guitar_effect_input(const std::vector<float>& input)
 {
     T input_adapted;
     std::copy(std::begin(input), std::end(input), std::begin(input_adapted));
     return input_adapted;
+}
+
+static std::vector<float> generate_random_batch_of_samples(unsigned batch_size)
+{
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_real_distribution<float> dis{-1, 1};
+
+    std::vector<float> result(batch_size);
+    std::generate(std::begin(result), std::end(result), [&]() { return dis(rng); });
+    return result;
 }
 
 TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
@@ -262,4 +276,26 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
                          EqualsSamples(std::vector<float>{0.2f, 0.2f, 0.18f, -0.2f, 0.25f, -0.1f, -0.2f, 0.3f}));
         }
     }
+}
+
+TEST_CASE("Basic windowed distortion with memory benchmark", "[distortion][!benchmark]")
+{
+    static constexpr unsigned WindowSize{64};
+    static constexpr float threshold{0.7};
+
+    using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+    Distortion distortion{threshold};
+
+    auto random_samples{generate_random_batch_of_samples(64)};
+
+    constexpr unsigned number_of_tests{10240};
+    BENCHMARK("Applying distortion, window size 64")
+    {
+        auto i{number_of_tests};
+        while (i--)
+        {
+            auto random_samples_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(random_samples)};
+            distortion.apply(std::move(random_samples_adapted));
+        }
+    };
 }
