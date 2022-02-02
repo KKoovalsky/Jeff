@@ -72,16 +72,38 @@ using TestData = std::tuple<Input, ExpectedOutput>;
 
 static const std::initializer_list<TestData> test_data{
     {Input{-0.1f, 0.2f, 0.7f, 0.8f}, ExpectedOutput{-0.07f, 0.14f, 0.49f, 0.56f}},
-    {Input{0.1f, 0.8f, 0.2f, 0.7f}, ExpectedOutput{0.07f, 0.56f, 0.2f, 0.56f}},
 
-    // TODO:
-    // 1. This is same as previous!
-    // 2. Check "Scenarios" below for values:
-    //  a. only positive
-    //  b. only negative
-    //  c. mixed
-    {Input{0.1f, 0.8f, 0.2f, 0.7f}, ExpectedOutput{0.07f, 0.56f, 0.2f, 0.56f}}
-    //
+    // Scenarios more or less follow patterns:
+    // lower, higher, lower, higher
+    // lower, higher, higher, lower
+    // higher, lower, lower, higher
+    // higher, lower, lower, lower
+    // ...
+    // Only positive values ...
+    {Input{0.1f, 0.8f, 0.2f, 0.7f}, ExpectedOutput{0.07f, 0.56f, 0.2f, 0.56f}},
+    {Input{0.1f, 0.8f, 0.5f, 0.2f}, ExpectedOutput{0.07f, 0.56f, 0.5f, 0.2f}},
+    {Input{0.6f, 0.04f, 0.3f, 0.9f}, ExpectedOutput{0.42f, 0.04f, 0.3f, 0.63f}},
+    {Input{0.5f, 0.04f, 0.3f, 0.2f}, ExpectedOutput{0.35f, 0.04f, 0.3f, 0.2f}},
+    // Only negative ...
+    {Input{-0.1f, -0.8f, -0.2f, -0.7f}, ExpectedOutput{-0.07f, -0.56f, -0.2f, -0.56f}},
+    {Input{-0.1f, -0.8f, -0.5f, -0.2f}, ExpectedOutput{-0.07f, -0.56f, -0.5f, -0.2f}},
+    {Input{-0.6f, -0.04f, -0.3f, -0.9f}, ExpectedOutput{-0.42f, -0.04f, -0.3f, -0.63f}},
+    {Input{-0.5f, -0.04f, -0.3f, -0.2f}, ExpectedOutput{-0.35f, -0.04f, -0.3f, -0.2f}},
+    // Mixed - positives higher ...
+    {Input{-0.1f, 0.8f, -0.2f, 0.7f}, ExpectedOutput{-0.07f, 0.56f, -0.2f, 0.56f}},
+    {Input{-0.1f, 0.8f, 0.5f, -0.6f}, ExpectedOutput{-0.07f, 0.56f, 0.5f, -0.56f}},
+    {Input{0.6f, -0.04f, -0.3f, 0.9f}, ExpectedOutput{0.42f, -0.04f, -0.3f, 0.63f}},
+    {Input{0.5f, -0.04f, -0.3f, -0.6f}, ExpectedOutput{0.35f, -0.04f, -0.3f, -0.42f}},
+    // Mixed - negatives lower ...
+    {Input{-0.9f, 0.4f, -0.2f, 0.64f}, ExpectedOutput{-0.63f, 0.4f, -0.2f, 0.63f}},
+    {Input{-0.6f, 0.4f, 0.5f, -0.3f}, ExpectedOutput{-0.42f, 0.4f, 0.42f, -0.3f}},
+    {Input{0.2f, -0.4f, -0.5f, 0.1f}, ExpectedOutput{0.14f, -0.28f, -0.35f, 0.1f}},
+    {Input{0.2f, -0.4f, -0.3f, -0.6f}, ExpectedOutput{0.14f, -0.28f, -0.28f, -0.42f}},
+    // More or less constant signal ...
+    {Input{0.4f, 0.42f, 0.38f, 0.36f}, ExpectedOutput{0.28f, 0.294f, 0.294f, 0.294f}},
+    {Input{-0.4f, -0.42f, -0.38f, -0.36f}, ExpectedOutput{-0.28f, -0.294f, -0.294f, -0.294f}},
+    // Around zero ...
+    {Input{0.001f, -0.02f, 0.01f, 0.008f}, ExpectedOutput{0.0007f, -0.014f, 0.01f, 0.008f}},
 };
 
 } // namespace HardClippingAtBeginningTestData
@@ -102,13 +124,6 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
         REQUIRE_THAT(result, EqualsSamples(expected_output));
     }
 
-    // Scenarios:
-    // lower, higher, lower, higher
-    // lower, higher, higher, lower
-    // higher, lower, lower, higher
-    // higher, lower, lower, lower
-    // ...
-
     SECTION("Signal is hard-clipped continuously")
     {
     }
@@ -118,6 +133,14 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
     }
 
     SECTION("Signal is hard-clipped for the default type")
+    {
+    }
+
+    SECTION("Various thresholds are applied")
+    {
+    }
+
+    SECTION("Various window sized are handled")
     {
     }
 }
