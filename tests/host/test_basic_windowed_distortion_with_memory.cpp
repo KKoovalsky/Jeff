@@ -237,5 +237,29 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
 
     SECTION("Various window sizes are handled")
     {
+        SECTION("Window size is 4")
+        {
+            static constexpr unsigned WindowSize{4};
+            static constexpr float threshold{0.5};
+
+            using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+            Distortion distortion{threshold};
+
+            auto result{distortion.apply({0.2f, 0.3f, -0.17f, -0.21f})};
+            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.1f, 0.15f, -0.15f, -0.15f}));
+        }
+
+        SECTION("Window size is 8")
+        {
+            static constexpr unsigned WindowSize{8};
+            static constexpr float threshold{0.5};
+
+            using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+            Distortion distortion{threshold};
+
+            auto result{distortion.apply({0.4f, 0.3f, 0.18f, -0.2f, 0.5f, -0.1f, -0.2f, 0.6f})};
+            REQUIRE_THAT(result,
+                         EqualsSamples(std::vector<float>{0.2f, 0.2f, 0.18f, -0.2f, 0.25f, -0.1f, -0.2f, 0.3f}));
+        }
     }
 }
