@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iterator>
 
 #include "batch_of_samples.hpp"
 #include "guitar_effect.hpp"
@@ -29,15 +30,17 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         if (threshold < 0.0f)
             throw Error{"Threshold must not be negative"};
 
-        std::fill(std::begin(previous_batch), std::end(previous_batch), 0.0f);
+        std::fill(std::begin(previous_batch_absolute_values), std::end(previous_batch_absolute_values), 0.0f);
     }
 
     BatchOfSamples apply(BatchOfSamples samples) override
     {
         BatchOfSamples output_samples;
+        auto current_batch_absolute_values{to_absolute(samples)};
 
-        auto computation_window{merge(previous_batch, samples)};
+        auto computation_window{merge(previous_batch_absolute_values, current_batch_absolute_values)};
         auto output_samples_it{std::begin(output_samples)};
+        auto input_samples_it{std::begin(samples)};
 
         constexpr auto first_new_sample_index{ComputationWindowSize / 2};
         for (unsigned i{first_new_sample_index}; i < ComputationWindowSize; ++i)
@@ -45,16 +48,14 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
             auto window_begin_it{std::next(std::begin(computation_window), i - WindowSize + 1)};
             auto window_end_it{std::next(std::begin(computation_window), i + 1)};
             // TODO: MaxElement shall be template function and Fabs as well.
-            auto window_absolute_maximum_it{std::max_element(
-                window_begin_it, window_end_it, [](auto l, auto r) { return std::fabs(l) < std::fabs(r); })};
-            auto window_absolute_maximum{std::fabs(*window_absolute_maximum_it)};
+            auto window_absolute_maximum{*std::max_element(window_begin_it, window_end_it)};
 
             auto window_threshold{window_absolute_maximum * threshold};
-            auto input_sample{computation_window[i]};
+            auto input_sample{*input_samples_it++};
             *output_samples_it++ = clamp(input_sample, window_threshold, -window_threshold);
         }
 
-        previous_batch = std::move(samples);
+        previous_batch_absolute_values = std::move(current_batch_absolute_values);
         return output_samples;
     }
 
@@ -82,6 +83,13 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         return computation_window;
     }
 
+    BatchOfSamples to_absolute(const BatchOfSamples& samples) const noexcept
+    {
+        BatchOfSamples result;
+        std::transform(std::begin(samples), std::end(samples), std::begin(result), [](auto v) { return std::fabs(v); });
+        return result;
+    }
+
     float clamp(float value, float max_value, float min_value) const noexcept
     {
         if (value > max_value)
@@ -93,7 +101,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
     }
 
     float threshold;
-    BatchOfSamples previous_batch;
+    BatchOfSamples previous_batch_absolute_values;
 };
 
 #endif /* BASIC_WINDOWED_DISTORTION_WITH_MEMORY_HPP */
