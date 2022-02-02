@@ -19,6 +19,7 @@ struct BatchOfSamplesTemplate
     using SampleBuffer = SampleBufferTemplate<Size>;
     using PointerToBatch = std::unique_ptr<SampleBuffer>;
     using value_type = typename SampleBuffer::value_type;
+    using iterator = typename SampleBuffer::iterator;
 
     constexpr BatchOfSamplesTemplate() : pointer_to_batch{std::make_unique<SampleBuffer>()}
     {

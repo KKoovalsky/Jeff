@@ -9,12 +9,32 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <concepts>
 #include <iterator>
 
 #include "batch_of_samples.hpp"
 #include "guitar_effect.hpp"
 
-template<unsigned WindowSize>
+namespace detail
+{
+
+template<typename InputIt1, typename InputIt2>
+static inline auto max_element(InputIt1 beg, InputIt2 end)
+{
+    return std::max_element(beg, end);
+};
+
+static inline float calculate_absolute(float v)
+{
+    return std::fabs(v);
+}
+
+} // namespace detail
+
+template<unsigned WindowSize,
+         const auto& MaximumFinder = detail::max_element<typename BatchOfSamplesTemplate<WindowSize>::iterator,
+                                                         typename BatchOfSamplesTemplate<WindowSize>::iterator>,
+         const auto& AbsoluteCalculator = detail::calculate_absolute>
 class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemplate<WindowSize>>
 {
   public:
@@ -47,8 +67,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         {
             auto window_begin_it{std::next(std::begin(computation_window), i - WindowSize + 1)};
             auto window_end_it{std::next(std::begin(computation_window), i + 1)};
-            // TODO: MaxElement shall be template function and Fabs as well.
-            auto window_absolute_maximum{*std::max_element(window_begin_it, window_end_it)};
+            auto window_absolute_maximum{*MaximumFinder(window_begin_it, window_end_it)};
 
             auto window_threshold{window_absolute_maximum * threshold};
             auto input_sample{*input_samples_it++};
@@ -86,7 +105,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
     BatchOfSamples to_absolute(const BatchOfSamples& samples) const noexcept
     {
         BatchOfSamples result;
-        std::transform(std::begin(samples), std::end(samples), std::begin(result), [](auto v) { return std::fabs(v); });
+        std::transform(std::begin(samples), std::end(samples), std::begin(result), AbsoluteCalculator);
         return result;
     }
 
