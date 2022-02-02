@@ -181,6 +181,20 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
 
     SECTION("Signal is hard-clipped in the long run")
     {
+        static constexpr unsigned WindowSize{4};
+        static constexpr float threshold{0.8};
+
+        using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+        Distortion distortion{threshold};
+
+        Distortion::BatchOfSamples input1{0.4f, 0.2f, -0.2f, -0.5f};
+        Distortion::BatchOfSamples input2{0.2f, -0.2f, -0.3f, 0.5f};
+        Distortion::BatchOfSamples input3{0.4f, 0.2f, -0.1f, -0.5f};
+
+        distortion.apply(std::move(input1));
+        distortion.apply(std::move(input2));
+        auto result{distortion.apply(std::move(input3))};
+        REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.2f, -0.1f, -0.4f}));
     }
 
     SECTION("Threshold cannot be negative")
