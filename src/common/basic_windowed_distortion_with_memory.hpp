@@ -15,11 +15,15 @@
 #include "batch_of_samples.hpp"
 #include "guitar_effect.hpp"
 
-namespace detail
+namespace default_implementation
 {
 
-template<typename InputIt1, typename InputIt2>
-static inline auto max_element(InputIt1 beg, InputIt2 end)
+template<unsigned WindowSize>
+using BatchOfSamplesConstIterator = typename BatchOfSamplesTemplate<WindowSize>::const_iterator;
+
+template<unsigned WindowSize>
+static inline BatchOfSamplesConstIterator<WindowSize> max_element(BatchOfSamplesConstIterator<WindowSize> beg,
+                                                                  BatchOfSamplesConstIterator<WindowSize> end)
 {
     return std::max_element(beg, end);
 };
@@ -29,12 +33,11 @@ static inline float calculate_absolute(float v)
     return std::fabs(v);
 }
 
-} // namespace detail
+} // namespace default_implementation
 
 template<unsigned WindowSize,
-         const auto& MaximumFinder = detail::max_element<typename BatchOfSamplesTemplate<WindowSize>::iterator,
-                                                         typename BatchOfSamplesTemplate<WindowSize>::iterator>,
-         const auto& AbsoluteCalculator = detail::calculate_absolute>
+         const auto& MaximumFinder = default_implementation::max_element<WindowSize>,
+         const auto& AbsoluteCalculator = default_implementation::calculate_absolute>
 class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemplate<WindowSize>>
 {
   public:
@@ -85,7 +88,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         {
         }
 
-        [[nodiscard]] virtual const char* what() const noexcept override
+        [[nodiscard]] const char* what() const noexcept override
         {
             return message;
         }
@@ -109,7 +112,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         return result;
     }
 
-    float clamp(float value, float max_value, float min_value) const noexcept
+    [[nodiscard]] float clamp(float value, float max_value, float min_value) const noexcept
     {
         if (value > max_value)
             return max_value;
