@@ -1,6 +1,6 @@
 # Jeff - **J**ungles Guitar **Eff**ect
 
-[Device tests](docs/device_tests.md)
+1. [Device tests](docs/device_tests.md)
 
 TODO define:
 
