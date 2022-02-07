@@ -16,7 +16,7 @@
 
 void test_input_signal_is_duplicated_at_output()
 {
-    using BatchOfSamples = AudioSamplerBatchOfSamples;
+    using BatchOfSamples = AudioChainConfig::BatchOfSamples;
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
     ThreadedAudioSampler audio_sampler{sampling_trigger_timer};

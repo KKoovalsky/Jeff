@@ -8,9 +8,9 @@
 
 #include <array>
 #include <cstdint>
-#include <memory>
 #include <string>
 
+#include "audio_chain_config.hpp"
 #include "audio_sampler.hpp"
 #include "sampling_trigger_timer.hpp"
 
@@ -19,12 +19,9 @@
 #include "FreeRTOS.h"
 #include "event_groups.h"
 
-static constexpr inline unsigned AudioSamplerBufferSize{64};
-using AudioSamplerBuffer = std::array<float, AudioSamplerBufferSize>;
-using AudioSamplerBatchOfSamples = std::unique_ptr<AudioSamplerBuffer>;
-using AudioSamplerInterface = AudioSampler<AudioSamplerBatchOfSamples>;
-
 extern "C" void DMA1_Channel1_IRQHandler();
+
+using AudioSamplerInterface = AudioSampler<AudioChainConfig::BatchOfSamples>;
 
 class ThreadedAudioSampler : public AudioSamplerInterface
 {
@@ -59,9 +56,9 @@ class ThreadedAudioSampler : public AudioSamplerInterface
 
     static inline ThreadedAudioSampler* singleton_pointer{nullptr};
 
-    SamplingTriggerTimer &sampling_trigger_timer;
+    SamplingTriggerTimer& sampling_trigger_timer;
 
-    static constexpr inline unsigned RawSampleBufferSize{AudioSamplerBufferSize * 2};
+    static constexpr inline unsigned RawSampleBufferSize{AudioChainConfig::WindowSize * 2};
     using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;
 
     RawSampleBuffer raw_sample_buffer = {};

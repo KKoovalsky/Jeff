@@ -14,8 +14,6 @@
 
 #include "q/synth/sin.hpp"
 
-using Signal = std::array<float, AudioDacBufferSize>;
-
 using namespace std::chrono_literals;
 
 [[noreturn]] void test_audio_dac_generates_sine_with_1khz_frequency();
@@ -36,8 +34,8 @@ void test_audio_dac_generates_sine_with_1khz_frequency()
         namespace q = cycfi::q;
         static q::phase_iterator phase_it{q::frequency{static_cast<double>(signal_frequency_hz)}, output_frequency_hz};
 
-        auto samples{std::make_unique<Signal>()};
-        for (auto& sample : *samples)
+        AudioChainConfig::BatchOfSamples samples;
+        for (auto& sample : samples)
             sample = q::sin(phase_it++);
 
         return samples;

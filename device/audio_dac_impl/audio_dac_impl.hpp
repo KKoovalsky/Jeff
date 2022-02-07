@@ -6,12 +6,12 @@
 #ifndef AUDIO_DAC_IMPL_HPP
 #define AUDIO_DAC_IMPL_HPP
 
+#include "audio_chain_config.hpp"
 #include "audio_dac.hpp"
 #include "sampling_trigger_timer.hpp"
 
 #include <array>
 #include <cstdint>
-#include <memory>
 
 #include "jungles/singleton.hpp"
 #include "jungles_os_helpers/freertos/thread.hpp"
@@ -19,11 +19,7 @@
 #include "FreeRTOS.h"
 #include "event_groups.h"
 
-static inline constexpr unsigned AudioDacBufferSize{64};
-
-using AudioDacBuffer = std::array<float, AudioDacBufferSize>;
-using AudioDacBatchOfSamples = std::unique_ptr<AudioDacBuffer>;
-using AudioDacInterface = AudioDac<AudioDacBatchOfSamples>;
+using AudioDacInterface = AudioDac<AudioChainConfig::BatchOfSamples>;
 
 extern "C" void DMA1_Channel3_IRQHandler();
 
@@ -45,12 +41,12 @@ class AudioDacImpl : public AudioDacInterface, jungles::Singleton<AudioDacInterf
 
     void thread_code();
 
-    AudioDacBatchOfSamples get_new_samples();
+    AudioChainConfig::BatchOfSamples get_new_samples();
     static uint16_t convert_sample(float);
 
     static inline AudioDacImpl* singleton_pointer{nullptr};
 
-    static inline constexpr unsigned RawBufferSize{AudioDacBufferSize * 2};
+    static inline constexpr unsigned RawBufferSize{AudioChainConfig::WindowSize * 2};
     using RawSampleBuffer = std::array<uint16_t, RawBufferSize>;
 
     RawSampleBuffer raw_sample_buffer = {};

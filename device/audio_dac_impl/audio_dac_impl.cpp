@@ -119,12 +119,12 @@ void AudioDacImpl::set_on_stream_update_handler(AudioDac::Handler handler)
     stream_update_handler = std::move(handler);
 }
 
-AudioDacBatchOfSamples AudioDacImpl::get_new_samples()
+AudioChainConfig::BatchOfSamples AudioDacImpl::get_new_samples()
 {
     if (stream_update_handler)
         return stream_update_handler();
     else
-        return std::make_unique<AudioDacBuffer>();
+        return AudioChainConfig::BatchOfSamples{};
 }
 
 uint16_t AudioDacImpl::convert_sample(float sample)
@@ -185,7 +185,7 @@ void AudioDacImpl::thread_code()
 
     auto copy_converted_samples{[this](auto destination_begin_it) {
         auto samples{this->get_new_samples()};
-        std::ranges::transform(samples->begin(), samples->end(), destination_begin_it, convert_sample);
+        std::ranges::transform(std::begin(samples), std::end(samples), destination_begin_it, convert_sample);
     }};
 
     auto copy_converted_samples_to_first_half_of_raw_buffer{[&]() {

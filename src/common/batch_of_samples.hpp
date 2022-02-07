@@ -73,6 +73,11 @@ struct BatchOfSamplesTemplate
         return pointer_to_batch->cend();
     }
 
+    [[nodiscard]] constexpr unsigned size() const noexcept
+    {
+        return pointer_to_batch->size();
+    }
+
     PointerToBatch pointer_to_batch;
 };
 

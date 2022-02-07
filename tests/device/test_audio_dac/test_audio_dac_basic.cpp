@@ -57,7 +57,7 @@ void test_single_batch_is_streamed()
     AudioDacImpl dac{sampling_trigger_timer};
     dac.set_on_stream_update_handler([&]() {
         stream_updated_flag.set();
-        return std::make_unique<AudioDacBuffer>();
+        return AudioChainConfig::BatchOfSamples{};
     });
 
     dac.start();
@@ -79,7 +79,7 @@ void test_multiple_batches_are_streamed()
         stream_update_count++;
         if (stream_update_count == 5)
             stream_updated_multiple_times_flag.set();
-        return std::make_unique<AudioDacBuffer>();
+        return AudioChainConfig::BatchOfSamples{};
     });
 
     dac.start();

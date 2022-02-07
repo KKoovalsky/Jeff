@@ -83,7 +83,7 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
     ThreadedAudioSampler sampler{sampling_trigger_timer};
-    sampler.set_on_batch_of_samples_received_handler([&](auto samples) { samples_received += samples->size(); });
+    sampler.set_on_batch_of_samples_received_handler([&](auto samples) { samples_received += samples.size(); });
     sampler.start();
 
     os::wait(1s);

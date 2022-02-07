@@ -41,7 +41,7 @@ void assert_input_signal_matches_sine(unsigned signal_frequency_hz)
 
     jungles::freertos::flag collection_finished_flag;
     sampler.set_on_batch_of_samples_received_handler([&](auto samples) {
-        collected_samples.insert(std::end(collected_samples), samples->begin(), samples->end());
+        collected_samples.insert(std::end(collected_samples), std::begin(samples), std::end(samples));
         if (collected_samples.size() >= number_of_samples)
             collection_finished_flag.set();
     });
