@@ -38,6 +38,7 @@ add_subdirectory(sampling_trigger_timer_impl)
 add_subdirectory(threaded_audio_sampler)
 add_subdirectory(button)
 add_subdirectory(audio_dac_impl)
+add_subdirectory(jeff_app_wrapper)
 
 add_executable(firmware main.cpp)
 MakeDeviceExecutable(firmware)
