@@ -59,6 +59,6 @@ cmake --build . --target test_audio_chain-flash
 
 The test will use `JeffAppWrapper` and apply `DummyGuitarEffect` onto the signal. It means that the input will be 
 duplicated at the output. Once again, the input signal can be with or without the DC offset, depending on where is
-the input signal applied (see the explanation in the [Audio sampler tests](#audio-sampler-tests) section). The output
+the input signal applied (see the explanation in the [Audio sampler tests](#1-audio-sampler-tests) section). The output
 signal can be observed on the Nucleo board pin A3 (PA4). One can e.g. apply sine wave and change it frequency. The
 output signal shall change accordingly.
