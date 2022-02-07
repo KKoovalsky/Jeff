@@ -1,5 +1,5 @@
 /**
- * @file    test_audio_dac_generates_sine.cpp
+ * @file    test_audio_dac_generates_sine_1khz.cpp
  * @brief   Generates sine wave to be checked with external tools using Audio DAC implementation.
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */

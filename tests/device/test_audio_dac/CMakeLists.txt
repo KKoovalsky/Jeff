@@ -3,7 +3,7 @@ ToDeviceTest(test_audio_dac_basic test_audio_dac_basic)
 target_link_libraries(test_audio_dac_basic PRIVATE
     audio_dac_impl jungles::os_helpers os_utils serial_logger sampling_trigger_timer_impl)
 
-add_executable(test_audio_dac_generates_sine test_audio_dac_generates_sine.cpp)
-ToDeviceTest(test_audio_dac_generates_sine test_audio_dac_generates_sine)
-target_link_libraries(test_audio_dac_generates_sine PRIVATE
+add_executable(test_audio_dac_generates_sine_1khz test_audio_dac_generates_sine_1khz.cpp)
+ToDeviceTest(test_audio_dac_generates_sine_1khz test_audio_dac_generates_sine_1khz)
+target_link_libraries(test_audio_dac_generates_sine_1khz PRIVATE
     audio_dac_impl jungles::os_helpers os_utils serial_logger sampling_trigger_timer_impl libq)
