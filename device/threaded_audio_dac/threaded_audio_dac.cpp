@@ -1,10 +1,10 @@
 /**
- * @file    audio_dac_impl.cpp
- * @brief   Implements the AudioDacImpl.
+ * @file    threaded_audio_dac.cpp
+ * @brief   Implements the ThreadedAudioDac.
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
-#include "audio_dac_impl.hpp"
+#include "threaded_audio_dac.hpp"
 #include "cmsis_os2.h"
 #include "dac.h"
 #include "os_waiters.hpp"
@@ -26,14 +26,14 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-AudioDacImpl::AudioDacImpl(SamplingTriggerTimer& t) :
+ThreadedAudioDac::ThreadedAudioDac(SamplingTriggerTimer& t) :
     sampling_trigger_timer{t}, event_group_handle{xEventGroupCreate()}, worker("AudioDac", 1536, osPriorityNormal)
 {
     singleton_pointer = this;
     MX_DAC1_Init();
 }
 
-AudioDacImpl::~AudioDacImpl()
+ThreadedAudioDac::~ThreadedAudioDac()
 {
     LL_DAC_DeInit(DAC1);
 
@@ -41,7 +41,7 @@ AudioDacImpl::~AudioDacImpl()
     singleton_pointer = nullptr;
 }
 
-void AudioDacImpl::start()
+void ThreadedAudioDac::start()
 {
     worker.start([this]() { this->thread_code(); });
 
@@ -50,7 +50,7 @@ void AudioDacImpl::start()
     sampling_trigger_timer.start();
 }
 
-void AudioDacImpl::stop()
+void ThreadedAudioDac::stop()
 {
     auto quit_running_thread{[this]() {
         xEventGroupSetBits(this->event_group_handle, to_underlying(AudioDacEvents::quit));
@@ -64,7 +64,7 @@ void AudioDacImpl::stop()
     worker.join();
 }
 
-void AudioDacImpl::configure_dma()
+void ThreadedAudioDac::configure_dma()
 {
     LL_DMA_ConfigAddresses(DMA1,
                            LL_DMA_CHANNEL_3,
@@ -87,7 +87,7 @@ void AudioDacImpl::configure_dma()
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
 }
 
-void AudioDacImpl::enable_dac()
+void ThreadedAudioDac::enable_dac()
 {
     auto wait_for_dac_to_settle{[]() {
         os::wait_milliseconds(1);
@@ -99,7 +99,7 @@ void AudioDacImpl::enable_dac()
     LL_DAC_EnableDMAReq(DAC1, LL_DAC_CHANNEL_1);
 }
 
-void AudioDacImpl::disable_dma()
+void ThreadedAudioDac::disable_dma()
 {
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_3);
     LL_DMA_DisableIT_HT(DMA1, LL_DMA_CHANNEL_3);
@@ -108,18 +108,18 @@ void AudioDacImpl::disable_dma()
     LL_DMA_ClearFlag_TC3(DMA1);
 }
 
-void AudioDacImpl::disable_dac()
+void ThreadedAudioDac::disable_dac()
 {
     LL_DAC_DisableTrigger(DAC1, LL_DAC_CHANNEL_1);
     LL_DAC_Disable(DAC1, LL_DAC_CHANNEL_1);
 }
 
-void AudioDacImpl::set_on_stream_update_handler(AudioDac::Handler handler)
+void ThreadedAudioDac::set_on_stream_update_handler(AudioDac::Handler handler)
 {
     stream_update_handler = std::move(handler);
 }
 
-AudioChainConfig::BatchOfSamples AudioDacImpl::get_new_samples()
+AudioChainConfig::BatchOfSamples ThreadedAudioDac::get_new_samples()
 {
     if (stream_update_handler)
         return stream_update_handler();
@@ -127,7 +127,7 @@ AudioChainConfig::BatchOfSamples AudioDacImpl::get_new_samples()
         return AudioChainConfig::BatchOfSamples{};
 }
 
-uint16_t AudioDacImpl::convert_sample(float sample)
+uint16_t ThreadedAudioDac::convert_sample(float sample)
 {
     static constexpr unsigned max_dac_value{__LL_DAC_DIGITAL_SCALE(LL_DAC_RESOLUTION_12B)};
 
@@ -146,7 +146,7 @@ extern "C" void DMA1_Channel3_IRQHandler(void)
     {
         LL_DMA_ClearFlag_HT3(DMA1);
 
-        auto event_group_handle{AudioDacImpl::singleton_pointer->event_group_handle};
+        auto event_group_handle{ThreadedAudioDac::singleton_pointer->event_group_handle};
         xEventGroupSetBitsFromISR(event_group_handle,
                                   to_underlying(AudioDacEvents::half_transfer),
                                   &higher_priority_task_woken_during_half_transfer);
@@ -156,7 +156,7 @@ extern "C" void DMA1_Channel3_IRQHandler(void)
     {
         LL_DMA_ClearFlag_TC3(DMA1);
 
-        auto event_group_handle{AudioDacImpl::singleton_pointer->event_group_handle};
+        auto event_group_handle{ThreadedAudioDac::singleton_pointer->event_group_handle};
         xEventGroupSetBitsFromISR(event_group_handle,
                                   to_underlying(AudioDacEvents::full_transfer),
                                   &higher_priority_task_woken_during_full_transfer);
@@ -166,7 +166,7 @@ extern "C" void DMA1_Channel3_IRQHandler(void)
                        or higher_priority_task_woken_during_full_transfer);
 }
 
-void AudioDacImpl::thread_code()
+void ThreadedAudioDac::thread_code()
 {
     auto wait_for_any_event{[this]() {
         auto do_clear_event_bits_on_exit{pdTRUE};

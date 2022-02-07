@@ -5,7 +5,7 @@
  */
 
 #include "jeff_app_wrapper.hpp"
-#include "audio_dac_impl.hpp"
+#include "threaded_audio_dac.hpp"
 #include "os_waiters.hpp"
 #include "sampling_trigger_timer_impl.hpp"
 #include "threaded_audio_sampler.hpp"
@@ -22,7 +22,7 @@ void JeffAppWrapper::loop()
 {
     SamplingTriggerTimerImpl sampling_trigger_timer;
     ThreadedAudioSampler audio_sampler{sampling_trigger_timer};
-    AudioDacImpl audio_dac{sampling_trigger_timer};
+    ThreadedAudioDac audio_dac{sampling_trigger_timer};
 
     AudioChain<jungles::freertos::mutex, AudioChainConfig::BatchOfSamples> audio_chain{
         audio_sampler, guitar_effect, audio_dac};

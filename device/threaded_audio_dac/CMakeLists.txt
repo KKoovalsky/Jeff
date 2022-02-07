@@ -1,0 +1,4 @@
+add_library(threaded_audio_dac STATIC threaded_audio_dac.cpp)
+target_include_directories(threaded_audio_dac PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(threaded_audio_dac PUBLIC jeff_common jungles::cpp_utils jungles::os_helpers cube freertos)
+target_link_libraries(threaded_audio_dac PRIVATE os_utils)

@@ -1,5 +1,5 @@
 /**
- * @file        audio_dac_impl.hpp
+ * @file        threaded_audio_dac.hpp
  * @brief       Defines AudioDac implementation.
  * @author      Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
@@ -23,11 +23,11 @@ using AudioDacInterface = AudioDac<AudioChainConfig::BatchOfSamples>;
 
 extern "C" void DMA1_Channel3_IRQHandler();
 
-class AudioDacImpl : public AudioDacInterface, jungles::Singleton<AudioDacInterface, AudioDacInterface::Error>
+class ThreadedAudioDac : public AudioDacInterface, jungles::Singleton<AudioDacInterface, AudioDacInterface::Error>
 {
   public:
-    explicit AudioDacImpl(SamplingTriggerTimer&);
-    ~AudioDacImpl() override;
+    explicit ThreadedAudioDac(SamplingTriggerTimer&);
+    ~ThreadedAudioDac() override;
 
     void start() override;
     void stop() override;
@@ -44,7 +44,7 @@ class AudioDacImpl : public AudioDacInterface, jungles::Singleton<AudioDacInterf
     AudioChainConfig::BatchOfSamples get_new_samples();
     static uint16_t convert_sample(float);
 
-    static inline AudioDacImpl* singleton_pointer{nullptr};
+    static inline ThreadedAudioDac* singleton_pointer{nullptr};
 
     static inline constexpr unsigned RawBufferSize{AudioChainConfig::WindowSize * 2};
     using RawSampleBuffer = std::array<uint16_t, RawBufferSize>;

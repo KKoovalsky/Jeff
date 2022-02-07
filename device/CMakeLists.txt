@@ -37,7 +37,7 @@ add_subdirectory(serial_logger)
 add_subdirectory(sampling_trigger_timer_impl)
 add_subdirectory(threaded_audio_sampler)
 add_subdirectory(button)
-add_subdirectory(audio_dac_impl)
+add_subdirectory(threaded_audio_dac)
 add_subdirectory(jeff_app_wrapper)
 add_subdirectory(distortion_app)
 
