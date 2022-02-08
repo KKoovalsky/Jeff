@@ -77,6 +77,8 @@ void Error_Handler(void);
 #define LPUART1_TX_A7_GPIO_Port GPIOA
 #define DAC1_OUT1_A3_Pin LL_GPIO_PIN_4
 #define DAC1_OUT1_A3_GPIO_Port GPIOA
+#define TIM16_CH1_A5_Pin LL_GPIO_PIN_6
+#define TIM16_CH1_A5_GPIO_Port GPIOA
 #define BUTTON0_Pin LL_GPIO_PIN_12
 #define BUTTON0_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
