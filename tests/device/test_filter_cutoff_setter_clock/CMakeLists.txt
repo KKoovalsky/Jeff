@@ -1,0 +1,7 @@
+add_executable(test_filter_cutoff_setter_clock test_filter_cutoff_setter_clock.cpp)
+PromoteToDeviceTestExecutable(test_filter_cutoff_setter_clock test_filter_cutoff_setter_clock)
+target_link_libraries(test_filter_cutoff_setter_clock PRIVATE
+    serial_logger
+    filter_cutoff_setter_clock
+    os_utils
+)

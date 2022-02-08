@@ -1,0 +1,3 @@
+add_library(filter_cutoff_setter_clock STATIC filter_cutoff_setter_clock.cpp)
+target_include_directories(filter_cutoff_setter_clock PUBLIC ${CMAKE_CURRENT_LIST_DIR} jungles::cpp_utils)
+target_link_libraries(filter_cutoff_setter_clock PRIVATE cube)
