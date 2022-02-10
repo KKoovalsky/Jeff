@@ -41,6 +41,7 @@ add_subdirectory(threaded_audio_dac)
 add_subdirectory(jeff_app_wrapper)
 add_subdirectory(distortion_app)
 add_subdirectory(filter_cutoff_setter_clock)
+add_subdirectory(benchmark_timer)
 
 add_executable(firmware main.cpp)
 MakeDeviceExecutable(firmware)

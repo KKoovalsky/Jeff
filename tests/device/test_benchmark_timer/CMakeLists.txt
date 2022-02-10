@@ -1,0 +1,4 @@
+add_executable(test_benchmark_timer test_benchmark_timer.cpp)
+ToDeviceTest(test_benchmark_timer test_benchmark_timer)
+target_link_libraries(test_benchmark_timer PRIVATE
+    benchmark_timer serial_logger)
