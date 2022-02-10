@@ -42,8 +42,9 @@ void BenchmarkTimer::stop()
 unsigned BenchmarkTimer::time_microseconds() const
 {
     // BEWARE: obtaining those two values is not atomic and interrupt may happen at (1) (in between the loads of the
-    // values. This may lead to improper values. We may have to figure out a workaround here, e.g. using FreeRTOS
-    // functions like, e.g. try to obtain the mutex; if can't then do some post-alignment, etc.
+    // values. This may lead to improper values.
+    // TODO: We may have to figure out a workaround here, e.g. using FreeRTOS functions like, e.g. try to obtain the
+    // mutex; if can't then do some post-alignment, etc.
     auto overflow_count{timer_counter_overflow_counter.load()};
     // (1)
     auto current_timer_value{LL_TIM_GetCounter(TIMER_HW_INSTANCE)};
