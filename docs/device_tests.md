@@ -73,3 +73,9 @@ cmake --build . --target test_filter_cutoff_setter_clock-flash
 ```
 
 Observe the clock on the A5 Nucleo board pin (PA6).
+
+# 5. Miscellaneous automatic tests
+
+```
+ctest -R test_benchmark_timer
+```
