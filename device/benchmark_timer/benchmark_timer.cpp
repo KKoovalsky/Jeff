@@ -12,9 +12,10 @@
 
 #define TIMER_HW_INSTANCE TIM7
 
-BenchmarkTimer::BenchmarkTimer() : max_hardware_timer_counter_value{LL_TIM_GetAutoReload(TIMER_HW_INSTANCE)}
+BenchmarkTimer::BenchmarkTimer()
 {
     MX_TIM7_Init();
+    max_hardware_timer_counter_value = LL_TIM_GetAutoReload(TIMER_HW_INSTANCE) + 1;
     start();
 }
 

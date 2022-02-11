@@ -18,13 +18,13 @@ class BenchmarkTimer : public jungles::Singleton<BenchmarkTimer>
     explicit BenchmarkTimer();
     ~BenchmarkTimer();
 
-    unsigned time_microseconds() const;
+    [[nodiscard]] unsigned time_microseconds() const;
 
   private:
     static void start();
     static void stop();
 
-    const unsigned max_hardware_timer_counter_value;
+    unsigned max_hardware_timer_counter_value;
 
     static inline std::atomic<unsigned> timer_counter_overflow_counter{0};
 
