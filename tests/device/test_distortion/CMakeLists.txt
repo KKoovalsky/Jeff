@@ -1,0 +1,5 @@
+add_executable(test_distortion_benchmark test_distortion_benchmark.cpp)
+ToDeviceTest(test_distortion_benchmark test_distortion_benchmark)
+target_link_libraries(test_distortion_benchmark PRIVATE
+    benchmark_timer serial_logger jeff_common
+)
