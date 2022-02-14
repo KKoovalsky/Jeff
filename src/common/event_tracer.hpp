@@ -6,6 +6,8 @@
 #ifndef EVENT_TRACER_HPP
 #define EVENT_TRACER_HPP
 
+#include <string_view>
+
 struct EventTracer
 {
     virtual void capture(std::string_view event) = 0;
