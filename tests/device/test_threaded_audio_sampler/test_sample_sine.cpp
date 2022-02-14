@@ -8,6 +8,8 @@
 #include "serial_logger.hpp"
 #include "threaded_audio_sampler.hpp"
 
+#include "dummy_event_tracer.hpp"
+
 #include "unity.h"
 
 #include "jungles_os_helpers/freertos/flag.hpp"
@@ -35,7 +37,8 @@ void assert_input_signal_matches_sine(unsigned signal_frequency_hz)
     unsigned margin{128};
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
-    ThreadedAudioSampler sampler{sampling_trigger_timer};
+    DummyEventTracer event_tracer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
     std::vector<float> collected_samples;
     collected_samples.reserve(number_of_samples + margin);
 

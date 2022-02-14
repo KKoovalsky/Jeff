@@ -34,8 +34,9 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-ThreadedAudioSampler::ThreadedAudioSampler(SamplingTriggerTimer& sampling_trigger_timer) :
+ThreadedAudioSampler::ThreadedAudioSampler(SamplingTriggerTimer& sampling_trigger_timer, EventTracer& event_tracer) :
     sampling_trigger_timer(sampling_trigger_timer),
+    event_tracer{event_tracer},
     audio_sampler_events{xEventGroupCreate()},
     worker{"AudioSampler", 1536, osPriorityNormal}
 {
@@ -258,6 +259,7 @@ void ThreadedAudioSampler::thread_code()
     while (true)
     {
         auto event{wait_for_any_event()};
+        event_tracer.capture("ThreadedAudioSampler: begin");
         if (is_event(event, ThreadedAudioSamplerEvent::half_transfer))
         {
             auto begin{std::cbegin(raw_sample_buffer)};
@@ -274,6 +276,7 @@ void ThreadedAudioSampler::thread_code()
         {
             break;
         }
+        event_tracer.capture("ThreadedAudioSampler: end");
     }
 }
 

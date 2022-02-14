@@ -12,6 +12,7 @@
 
 #include "audio_chain_config.hpp"
 #include "audio_sampler.hpp"
+#include "event_tracer.hpp"
 #include "sampling_trigger_timer.hpp"
 
 #include "jungles_os_helpers/freertos/thread.hpp"
@@ -26,7 +27,7 @@ using AudioSamplerInterface = AudioSampler<AudioChainConfig::BatchOfSamples>;
 class ThreadedAudioSampler : public AudioSamplerInterface
 {
   public:
-    explicit ThreadedAudioSampler(SamplingTriggerTimer&);
+    explicit ThreadedAudioSampler(SamplingTriggerTimer&, EventTracer&);
     ~ThreadedAudioSampler() override;
 
     void set_on_batch_of_samples_received_handler(Handler) override;
@@ -57,6 +58,7 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     static inline ThreadedAudioSampler* singleton_pointer{nullptr};
 
     SamplingTriggerTimer& sampling_trigger_timer;
+    EventTracer& event_tracer;
 
     static constexpr inline unsigned RawSampleBufferSize{AudioChainConfig::WindowSize * 2};
     using RawSampleBuffer = std::array<uint16_t, RawSampleBufferSize>;

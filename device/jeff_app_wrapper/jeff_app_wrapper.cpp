@@ -28,7 +28,7 @@ void JeffAppWrapper::loop()
     DummyEventTracer event_tracer;
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
-    ThreadedAudioSampler audio_sampler{sampling_trigger_timer};
+    ThreadedAudioSampler audio_sampler{sampling_trigger_timer, event_tracer};
     ThreadedAudioDac audio_dac{sampling_trigger_timer, event_tracer};
 
     AudioChain<jungles::freertos::mutex, AudioChainConfig::BatchOfSamples> audio_chain{

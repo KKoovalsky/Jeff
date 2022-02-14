@@ -12,6 +12,8 @@
 #include "jungles_os_helpers/freertos/flag.hpp"
 #include "serial_logger.hpp"
 
+#include "dummy_event_tracer.hpp"
+
 #include "unity.h"
 
 #include "sampling_trigger_timer_impl.hpp"
@@ -37,7 +39,8 @@ void test_single_batch_of_samples_is_obtained()
     jungles::freertos::flag samples_received_flag;
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
-    ThreadedAudioSampler sampler{sampling_trigger_timer};
+    DummyEventTracer event_tracer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
     sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
     sampler.start();
 
@@ -53,7 +56,8 @@ void test_multiple_instances_can_be_run_one_after_another()
     {
         jungles::freertos::flag samples_received_flag;
         SamplingTriggerTimerImpl sampling_trigger_timer;
-        ThreadedAudioSampler sampler{sampling_trigger_timer};
+        DummyEventTracer event_tracer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
         sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
         sampler.start();
         samples_received_flag.wait();
@@ -65,7 +69,8 @@ void test_multiple_instances_can_be_run_one_after_another()
     {
         jungles::freertos::flag samples_received_flag;
         SamplingTriggerTimerImpl sampling_trigger_timer;
-        ThreadedAudioSampler sampler{sampling_trigger_timer};
+        DummyEventTracer event_tracer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
         sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
         sampler.start();
         samples_received_flag.wait();
@@ -82,7 +87,8 @@ void test_proper_number_of_samples_is_collected_within_specific_period()
     unsigned samples_received{0};
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
-    ThreadedAudioSampler sampler{sampling_trigger_timer};
+    DummyEventTracer event_tracer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
     sampler.set_on_batch_of_samples_received_handler([&](auto samples) { samples_received += samples.size(); });
     sampler.start();
 
@@ -100,8 +106,9 @@ void test_cant_create_two_instances()
     try
     {
         SamplingTriggerTimerImpl sampling_trigger_timer;
-        ThreadedAudioSampler sampler{sampling_trigger_timer};
-        ThreadedAudioSampler{sampling_trigger_timer};
+        DummyEventTracer event_tracer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+        ThreadedAudioSampler{sampling_trigger_timer, event_tracer};
     } catch (const ThreadedAudioSampler::Error&)
     {
         is_failed = true;
