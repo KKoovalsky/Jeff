@@ -5,6 +5,7 @@
  */
 
 #include "jeff_app_wrapper.hpp"
+#include "dummy_event_tracer.hpp"
 #include "filter_cutoff_setter_clock.hpp"
 #include "os_waiters.hpp"
 #include "sampling_trigger_timer_impl.hpp"
@@ -27,8 +28,11 @@ void JeffAppWrapper::loop()
     ThreadedAudioSampler audio_sampler{sampling_trigger_timer};
     ThreadedAudioDac audio_dac{sampling_trigger_timer};
 
+    // TODO: add CMake compile option to turn on/off dumping event traces.
+    DummyEventTracer event_tracer;
+
     AudioChain<jungles::freertos::mutex, AudioChainConfig::BatchOfSamples> audio_chain{
-        audio_sampler, guitar_effect, audio_dac};
+        audio_sampler, guitar_effect, audio_dac, event_tracer};
 
     os::loop();
 }
