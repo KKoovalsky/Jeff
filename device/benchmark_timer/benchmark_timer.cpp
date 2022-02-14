@@ -46,6 +46,9 @@ unsigned BenchmarkTimer::time_microseconds() const
     // values. This may lead to improper values.
     // TODO: We may have to figure out a workaround here, e.g. using FreeRTOS functions like, e.g. try to obtain the
     // mutex; if can't then do some post-alignment, etc.
+    // BEWARE #2 it is not clear whether there might be a situation that we can capture the timer value in between
+    // the events of clearing the timer counter by hardware and raising an interrupt because of that. I would guess
+    // that it is not possible - those two operations are done as a single atomic operation, but who knows?
     auto overflow_count{timer_counter_overflow_counter.load()};
     // (1)
     auto current_timer_value{LL_TIM_GetCounter(TIMER_HW_INSTANCE)};
