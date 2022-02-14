@@ -8,6 +8,7 @@
 
 #include "audio_chain_config.hpp"
 #include "audio_dac.hpp"
+#include "event_tracer.hpp"
 #include "sampling_trigger_timer.hpp"
 
 #include <array>
@@ -26,7 +27,7 @@ extern "C" void DMA1_Channel3_IRQHandler();
 class ThreadedAudioDac : public AudioDacInterface, jungles::Singleton<AudioDacInterface, AudioDacInterface::Error>
 {
   public:
-    explicit ThreadedAudioDac(SamplingTriggerTimer&);
+    explicit ThreadedAudioDac(SamplingTriggerTimer&, EventTracer&);
     ~ThreadedAudioDac() override;
 
     void start() override;
@@ -53,6 +54,8 @@ class ThreadedAudioDac : public AudioDacInterface, jungles::Singleton<AudioDacIn
 
     Handler stream_update_handler;
     SamplingTriggerTimer& sampling_trigger_timer;
+
+    EventTracer &event_tracer;
 
     EventGroupHandle_t event_group_handle;
 

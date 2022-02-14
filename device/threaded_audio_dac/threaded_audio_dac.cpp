@@ -26,8 +26,11 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-ThreadedAudioDac::ThreadedAudioDac(SamplingTriggerTimer& t) :
-    sampling_trigger_timer{t}, event_group_handle{xEventGroupCreate()}, worker("AudioDac", 1536, osPriorityNormal)
+ThreadedAudioDac::ThreadedAudioDac(SamplingTriggerTimer& t, EventTracer& et) :
+    sampling_trigger_timer{t},
+    event_tracer{et},
+    event_group_handle{xEventGroupCreate()},
+    worker("AudioDac", 1536, osPriorityNormal)
 {
     singleton_pointer = this;
     MX_DAC1_Init();
@@ -200,6 +203,7 @@ void ThreadedAudioDac::thread_code()
     while (true)
     {
         auto event{wait_for_any_event()};
+        event_tracer.capture("ThreadedAudioDac: begin");
         if (is_event(event, AudioDacEvents::half_transfer))
             copy_converted_samples_to_first_half_of_raw_buffer();
 
@@ -208,5 +212,7 @@ void ThreadedAudioDac::thread_code()
 
         if (is_event(event, AudioDacEvents::quit))
             break;
+
+        event_tracer.capture("ThreadedAudioDac: end");
     }
 }

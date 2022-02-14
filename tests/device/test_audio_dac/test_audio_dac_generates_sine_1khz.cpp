@@ -7,10 +7,12 @@
 #include <array>
 #include <chrono>
 
-#include "threaded_audio_dac.hpp"
 #include "os_waiters.hpp"
 #include "sampling_trigger_timer_impl.hpp"
 #include "serial_logger.hpp"
+#include "threaded_audio_dac.hpp"
+
+#include "dummy_event_tracer.hpp"
 
 #include "q/synth/sin.hpp"
 
@@ -26,7 +28,8 @@ void test_audio_dac_generates_sine_with_1khz_frequency()
     logger.log(LogLevel::info) << "Starting continuous generation of " << signal_frequency_hz << " Hz sine wave...";
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
-    ThreadedAudioDac dac{sampling_trigger_timer};
+    DummyEventTracer event_tracer;
+    ThreadedAudioDac dac{sampling_trigger_timer, event_tracer};
 
     constexpr unsigned output_frequency_hz{44100};
 
