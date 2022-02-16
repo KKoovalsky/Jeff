@@ -21,6 +21,16 @@ SerialLogger::SerialLoggerProxy& SerialLogger::SerialLoggerProxy::operator<<(std
     return *this;
 }
 
+SerialLogger::SerialLoggerProxy& SerialLogger::SerialLoggerProxy::operator<<(std::string_view sv)
+{
+    return *this << std::string(std::begin(sv), std::end(sv));
+}
+
+SerialLogger::SerialLoggerProxy& SerialLogger::SerialLoggerProxy::operator<<(const char* s_ptr)
+{
+    return *this << std::string(s_ptr);
+}
+
 SerialLogger::SerialLoggerProxy::~SerialLoggerProxy()
 {
     *this << "\r\n";

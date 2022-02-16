@@ -109,7 +109,6 @@ function(ProvideQDspLibrary)
     option(Q_BUILD_TEST "Build Q library tests" OFF)
     option(Q_BUILD_IO "Build Q IO library" OFF)
 
-
     include(FetchContent)
     FetchContent_Declare(QDspLibrary
         GIT_REPOSITORY https://github.com/cycfi/q.git
