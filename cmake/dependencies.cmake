@@ -84,7 +84,7 @@ function(ProvideJunglesOsHelpers)
     include(FetchContent)
     FetchContent_Declare(JunglesOsHelpers
         GIT_REPOSITORY https://github.com/KKoovalsky/JunglesOsHelpers.git
-        GIT_TAG 1c6d5e6c4436e0e04d9a6599af5c1a12296a391b
+        GIT_TAG b9175ea7fb574a6769b0c524a86322678285b968
     )
 
     FetchContent_MakeAvailable(JunglesOsHelpers)
@@ -117,5 +117,21 @@ function(ProvideQDspLibrary)
 
     FetchContent_MakeAvailable(QDspLibrary)
     target_compile_definitions(libq INTERFACE Q_DONT_USE_THREADS)
+
+endfunction()
+
+function(ProvideRingBufferLibrary)
+
+    include(FetchContent)
+    FetchContent_Declare(RingBuffer
+        GIT_REPOSITORY https://github.com/jnk0le/Ring-Buffer
+        GIT_TAG e93d9afd48c148964323acdef7ec73883f578bbc
+    )
+
+    FetchContent_MakeAvailable(RingBuffer)
+    FetchContent_GetProperties(RingBuffer SOURCE_DIR RING_BUFFER_LIB_SRC_DIR)
+
+    add_library(ring_buffer INTERFACE)
+    target_include_directories(ring_buffer INTERFACE ${RING_BUFFER_LIB_SRC_DIR})
 
 endfunction()

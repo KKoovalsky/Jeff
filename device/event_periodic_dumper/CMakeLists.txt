@@ -1,0 +1,7 @@
+add_library(event_periodic_dumper STATIC event_periodic_dumper.cpp)
+
+ProvideRingBufferLibrary()
+target_link_libraries(event_periodic_dumper PUBLIC jeff_common ring_buffer benchmark_timer jungles::os_helpers)
+
+target_include_directories(event_periodic_dumper PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(event_periodic_dumper PRIVATE os_utils serial_logger cube)
