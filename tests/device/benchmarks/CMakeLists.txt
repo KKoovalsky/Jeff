@@ -1,0 +1,3 @@
+add_executable(benchmarks test_moving_around_containers.cpp)
+MakeDeviceExecutable(benchmarks)
+target_link_libraries(benchmarks PRIVATE benchmark_timer serial_logger jungles::os_helpers jeff_common)
