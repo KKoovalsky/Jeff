@@ -5,3 +5,10 @@ target_link_libraries(jeff_app_wrapper PRIVATE
     sampling_trigger_timer_impl threaded_audio_dac threaded_audio_sampler filter_cutoff_setter_clock
     os_utils
     jungles::os_helpers)
+
+set(JEFF_TRACE_AND_DUMP_EVENTS OFF CACHE BOOL "Enables or disables tracing and dumping events over serial")
+
+if(JEFF_TRACE_AND_DUMP_EVENTS)
+    target_compile_definitions(jeff_app_wrapper PRIVATE JEFF_TRACE_AND_DUMP_EVENTS)
+    target_link_libraries(jeff_app_wrapper PRIVATE benchmark_timer event_periodic_dumper)
+endif()
