@@ -12,7 +12,7 @@ using Distortion = BasicWindowedDistortionWithMemory<AudioChainConfig::WindowSiz
 
 extern "C" void app_main()
 {
-    static constexpr float threshold{0.7};
+    static constexpr float threshold{0.5};
     Distortion distortion{threshold};
 
     JeffAppWrapper jeff{distortion};
