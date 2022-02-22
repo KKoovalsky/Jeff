@@ -10,6 +10,7 @@
 #include <mutex>
 
 #include "audio_chain.hpp"
+#include "dummy_event_tracer.hpp"
 
 static inline constexpr unsigned AudioBufferSize{64};
 using AudioBuffer = std::array<unsigned char, AudioBufferSize>;
@@ -72,9 +73,10 @@ TEST_CASE("AudioChain applies effect to samples and forwards it to DAC", "[audio
     AudioSamplerMock audio_sampler;
     GuitarEffectMock guitar_effect;
     AudioDacMock audio_dac;
+    DummyEventTracer event_tracer;
 
     auto make_audio_chain_under_test{[&]() {
-        return AudioChain<std::mutex, BatchOfSamples>{audio_sampler, guitar_effect, audio_dac};
+        return AudioChain<std::mutex, BatchOfSamples>{audio_sampler, guitar_effect, audio_dac, event_tracer};
     }};
 
     SECTION("Collected samples are mutated by the guitar effect")
