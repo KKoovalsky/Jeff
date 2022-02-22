@@ -25,7 +25,7 @@
 bool is_sample_equal(float a, float b)
 {
     // Samples are within range < -1 ; 1 > so we assume constant epsilon.
-    constexpr float epsilon{1e-7};
+    constexpr float epsilon{1e-6};
     float r{a - b};
     return r > -epsilon && r < epsilon;
 }
@@ -75,7 +75,7 @@ using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
 using TestData = std::tuple<Input, ExpectedOutput>;
 
 static const std::initializer_list<TestData> test_data{
-    {Input{-0.1f, 0.2f, 0.7f, 0.8f}, ExpectedOutput{-0.07f, 0.14f, 0.49f, 0.56f}},
+    {Input{-0.1f, 0.2f, 0.7f, 0.8f}, ExpectedOutput{-0.1f, 0.2f, 0.7f, 0.8f}},
 
     // Scenarios more or less follow patterns:
     // lower, higher, lower, higher
@@ -84,30 +84,30 @@ static const std::initializer_list<TestData> test_data{
     // higher, lower, lower, lower
     // ...
     // Only positive values ...
-    {Input{0.1f, 0.8f, 0.2f, 0.7f}, ExpectedOutput{0.07f, 0.56f, 0.2f, 0.56f}},
-    {Input{0.1f, 0.8f, 0.5f, 0.2f}, ExpectedOutput{0.07f, 0.56f, 0.5f, 0.2f}},
-    {Input{0.6f, 0.04f, 0.3f, 0.9f}, ExpectedOutput{0.42f, 0.04f, 0.3f, 0.63f}},
-    {Input{0.5f, 0.04f, 0.3f, 0.2f}, ExpectedOutput{0.35f, 0.04f, 0.3f, 0.2f}},
+    {Input{0.1f, 0.8f, 0.2f, 0.7f}, ExpectedOutput{0.1f, 0.8f, 0.285714f, 0.8f}},
+    {Input{0.1f, 0.8f, 0.5f, 0.2f}, ExpectedOutput{0.1f, 0.8f, 0.714286f, 0.285714f}},
+    {Input{0.6f, 0.04f, 0.3f, 0.9f}, ExpectedOutput{0.6f, 0.057143f, 0.428571f, 0.9f}},
+    {Input{0.5f, 0.04f, 0.3f, 0.2f}, ExpectedOutput{0.5f, 0.057143f, 0.428571f, 0.285714f}},
     // Only negative ...
-    {Input{-0.1f, -0.8f, -0.2f, -0.7f}, ExpectedOutput{-0.07f, -0.56f, -0.2f, -0.56f}},
-    {Input{-0.1f, -0.8f, -0.5f, -0.2f}, ExpectedOutput{-0.07f, -0.56f, -0.5f, -0.2f}},
-    {Input{-0.6f, -0.04f, -0.3f, -0.9f}, ExpectedOutput{-0.42f, -0.04f, -0.3f, -0.63f}},
-    {Input{-0.5f, -0.04f, -0.3f, -0.2f}, ExpectedOutput{-0.35f, -0.04f, -0.3f, -0.2f}},
+    {Input{-0.1f, -0.8f, -0.2f, -0.7f}, ExpectedOutput{-0.1f, -0.8f, -0.285714f, -0.8f}},
+    {Input{-0.1f, -0.8f, -0.5f, -0.2f}, ExpectedOutput{-0.1f, -0.8f, -0.714286f, -0.285714f}},
+    {Input{-0.6f, -0.04f, -0.3f, -0.9f}, ExpectedOutput{-0.6f, -0.057143f, -0.428571f, -0.9f}},
+    {Input{-0.5f, -0.04f, -0.3f, -0.2f}, ExpectedOutput{-0.5f, -0.057143f, -0.428571f, -0.285714f}},
     // Mixed - positives higher ...
-    {Input{-0.1f, 0.8f, -0.2f, 0.7f}, ExpectedOutput{-0.07f, 0.56f, -0.2f, 0.56f}},
-    {Input{-0.1f, 0.8f, 0.5f, -0.6f}, ExpectedOutput{-0.07f, 0.56f, 0.5f, -0.56f}},
-    {Input{0.6f, -0.04f, -0.3f, 0.9f}, ExpectedOutput{0.42f, -0.04f, -0.3f, 0.63f}},
-    {Input{0.5f, -0.04f, -0.3f, -0.6f}, ExpectedOutput{0.35f, -0.04f, -0.3f, -0.42f}},
+    {Input{-0.1f, 0.8f, -0.2f, 0.7f}, ExpectedOutput{-0.1f, 0.8f, -0.285714f, 0.8f}},
+    {Input{-0.1f, 0.8f, 0.5f, -0.6f}, ExpectedOutput{-0.1f, 0.8f, 0.714286f, -0.8f}},
+    {Input{0.6f, -0.04f, -0.3f, 0.9f}, ExpectedOutput{0.6f, -0.057143f, -0.428571f, 0.9f}},
+    {Input{0.5f, -0.04f, -0.3f, -0.6f}, ExpectedOutput{0.5f, -0.057143f, -0.428571f, -0.6f}},
     // Mixed - negatives lower ...
-    {Input{-0.9f, 0.4f, -0.2f, 0.64f}, ExpectedOutput{-0.63f, 0.4f, -0.2f, 0.63f}},
-    {Input{-0.6f, 0.4f, 0.5f, -0.3f}, ExpectedOutput{-0.42f, 0.4f, 0.42f, -0.3f}},
-    {Input{0.2f, -0.4f, -0.5f, 0.1f}, ExpectedOutput{0.14f, -0.28f, -0.35f, 0.1f}},
-    {Input{0.2f, -0.4f, -0.3f, -0.6f}, ExpectedOutput{0.14f, -0.28f, -0.28f, -0.42f}},
+    {Input{-0.9f, 0.4f, -0.2f, 0.64f}, ExpectedOutput{-0.9f, 0.571429f, -0.285714f, 0.9f}},
+    {Input{-0.6f, 0.4f, 0.5f, -0.3f}, ExpectedOutput{-0.6f, 0.571429f, 0.6f, -0.428571f}},
+    {Input{0.2f, -0.4f, -0.5f, 0.1f}, ExpectedOutput{0.2f, -0.4f, -0.5f, 0.142857f}},
+    {Input{0.2f, -0.4f, -0.3f, -0.6f}, ExpectedOutput{0.2f, -0.4f, -0.4f, -0.6f}},
     // More or less constant signal ...
-    {Input{0.4f, 0.42f, 0.38f, 0.36f}, ExpectedOutput{0.28f, 0.294f, 0.294f, 0.294f}},
-    {Input{-0.4f, -0.42f, -0.38f, -0.36f}, ExpectedOutput{-0.28f, -0.294f, -0.294f, -0.294f}},
+    {Input{0.4f, 0.42f, 0.38f, 0.36f}, ExpectedOutput{0.4f, 0.42f, 0.42f, 0.42f}},
+    {Input{-0.4f, -0.42f, -0.38f, -0.36f}, ExpectedOutput{-0.4f, -0.42f, -0.42f, -0.42f}},
     // Around zero ...
-    {Input{0.001f, -0.02f, 0.01f, 0.008f}, ExpectedOutput{0.0007f, -0.014f, 0.01f, 0.008f}},
+    {Input{0.001f, -0.02f, 0.01f, 0.008f}, ExpectedOutput{0.001f, -0.02f, 0.014286f, 0.011429f}},
 };
 
 } // namespace HardClippingAtBeginningTestData
@@ -126,20 +126,20 @@ using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
 using TestData = std::tuple<Input1, Input2, ExpectedOutput>;
 
 static const std::initializer_list<TestData> test_data{
-    {Input1{-0.1f, 0.2f, 0.7f, 0.8f}, Input2{0.3f, -0.2f, 0.7f, -0.1f}, ExpectedOutput{0.3f, -0.2f, 0.48f, -0.1f}},
-    {Input1{0.8f, 0.7f, -0.1f, 0.55f}, Input2{0.2f, -0.2f, 0.9f, 0.7f}, ExpectedOutput{0.2f, -0.2f, 0.54f, 0.54f}},
-    {Input1{0.8f, 0.7f, -0.1f, -0.6f}, Input2{0.38f, -0.38f, 0.9f, 0.7f}, ExpectedOutput{0.38f, -0.36f, 0.54f, 0.54f}},
-    {Input1{0.8f, -0.7f, -0.1f, -0.6f}, Input2{0.45f, -0.38f, 0.9f, 0.7f}, ExpectedOutput{0.42f, -0.36f, 0.54f, 0.54f}},
-    {Input1{0.8f, -0.2f, -0.15f, 0.6f}, Input2{0.45f, -0.26f, 0.8f, 0.2f}, ExpectedOutput{0.36f, -0.26f, 0.48f, 0.2f}},
-    {Input1{0.8f, -0.2f, -0.1f, -0.7f}, Input2{0.45f, -0.2f, 0.8f, -0.3f}, ExpectedOutput{0.42f, -0.2f, 0.48f, -0.3f}},
-    {Input1{0.8f, -0.2f, -0.1f, -0.7f}, Input2{0.5f, -0.2f, -0.8f, -0.3f}, ExpectedOutput{0.42f, -0.2f, -0.48f, -0.3f}},
-    {Input1{0.8f, -0.2f, -0.1f, 0.7f}, Input2{0.5f, -0.2f, -0.8f, -0.3f}, ExpectedOutput{0.42f, -0.2f, -0.48f, -0.3f}},
-    {Input1{-0.9f, -0.6f, -0.3f, -0.1f}, Input2{0.1f, 0.3f, 0.6f, 0.9f}, ExpectedOutput{0.1f, 0.18f, 0.36f, 0.54f}},
-    {Input1{0.9f, 0.6f, 0.3f, 0.1f}, Input2{-0.1f, -0.3f, -0.6f, -0.9f}, ExpectedOutput{-0.1f, -0.18f, -0.36f, -0.54f}},
-    {Input1{0.9f, 0.6f, 0.3f, 0.1f}, Input2{-0.1f, -0.3f, -0.6f, -0.9f}, ExpectedOutput{-0.1f, -0.18f, -0.36f, -0.54f}},
-    {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.18f, -0.1f, -0.18f, -0.54f}},
-    {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.18f, -0.1f, -0.18f, -0.54f}},
-    {Input1{0.1f, 0.3f, 0.1f, -0.2f}, Input2{-0.2f, 0.1f, 0.3f, 0.9f}, ExpectedOutput{-0.18f, 0.1f, 0.18f, 0.54f}},
+    {Input1{-0.1f, 0.2f, 0.7f, 0.8f}, Input2{0.3f, -0.2f, 0.7f, -0.1f}, ExpectedOutput{0.5f, -0.333333f, 0.8f, -0.166667f}},
+    {Input1{0.8f, 0.7f, -0.1f, 0.55f}, Input2{0.2f, -0.2f, 0.9f, 0.7f}, ExpectedOutput{0.333333f, -0.333333f, 0.9f, 0.9f}},
+    {Input1{0.8f, 0.7f, -0.1f, -0.6f}, Input2{0.38f, -0.38f, 0.9f, 0.7f}, ExpectedOutput{0.633333f, -0.6f, 0.9f, 0.9f}},
+    {Input1{0.8f, -0.7f, -0.1f, -0.6f}, Input2{0.45f, -0.38f, 0.9f, 0.7f}, ExpectedOutput{0.7f, -0.6f, 0.9f, 0.9f}},
+    {Input1{0.8f, -0.2f, -0.15f, 0.6f}, Input2{0.45f, -0.26f, 0.8f, 0.2f}, ExpectedOutput{0.6f, -0.433333f, 0.8f, 0.333333f}},
+    {Input1{0.8f, -0.2f, -0.1f, -0.7f}, Input2{0.45f, -0.2f, 0.8f, -0.3f}, ExpectedOutput{0.7f, -0.333333f, 0.8f, -0.5f}},
+    {Input1{0.8f, -0.2f, -0.1f, -0.7f}, Input2{0.5f, -0.2f, -0.8f, -0.3f}, ExpectedOutput{0.7f, -0.333333f, -0.8f, -0.5f}},
+    {Input1{0.8f, -0.2f, -0.1f, 0.7f}, Input2{0.5f, -0.2f, -0.8f, -0.3f}, ExpectedOutput{0.7f, -0.333333f, -0.8f, -0.5f}},
+    {Input1{-0.9f, -0.6f, -0.3f, -0.1f}, Input2{0.1f, 0.3f, 0.6f, 0.9f}, ExpectedOutput{0.166667f, 0.3f, 0.6f, 0.9f}},
+    {Input1{0.9f, 0.6f, 0.3f, 0.1f}, Input2{-0.1f, -0.3f, -0.6f, -0.9f}, ExpectedOutput{-0.166667f, -0.3f, -0.6f, -0.9f}},
+    {Input1{0.9f, 0.6f, 0.3f, 0.1f}, Input2{-0.1f, -0.3f, -0.6f, -0.9f}, ExpectedOutput{-0.166667f, -0.3f, -0.6f, -0.9f}},
+    {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.3f, -0.166667f, -0.3f, -0.9f}},
+    {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.3f, -0.166667f, -0.3f, -0.9f}},
+    {Input1{0.1f, 0.3f, 0.1f, -0.2f}, Input2{-0.2f, 0.1f, 0.3f, 0.9f}, ExpectedOutput{-0.3f, 0.166667f, 0.3f, 0.9f}},
     // {Input1{}, Input2{}, ExpectedOutput{}},
 };
 } // namespace HardClippingContinousTestData
@@ -209,7 +209,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
         distortion.apply(std::move(input1));
         distortion.apply(std::move(input2));
         auto result{distortion.apply(std::move(input3))};
-        REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.2f, -0.1f, -0.4f}));
+        REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.5f, 0.25f, -0.125f, -0.5f}));
     }
 
     SECTION("Threshold cannot be negative")
@@ -233,7 +233,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             Distortion distortion{threshold};
 
             auto result{distortion.apply({0.4f, 0.3f, 0.18f, -0.21f})};
-            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.2f, 0.2f, 0.18f, -0.2f}));
+            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.36f, -0.4f}));
         }
 
         SECTION("Threshold equal to 0.1")
@@ -245,7 +245,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             Distortion distortion{threshold};
 
             auto result{distortion.apply({0.4f, 0.2f, 0.001f, -0.05f})};
-            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.04f, 0.04f, 0.001f, -0.04f}));
+            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.01f, -0.4f}));
         }
     }
 
@@ -260,7 +260,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             Distortion distortion{threshold};
 
             auto result{distortion.apply({0.2f, 0.3f, -0.17f, -0.21f})};
-            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.1f, 0.15f, -0.15f, -0.15f}));
+            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.2f, 0.3f, -0.3f, -0.3f}));
         }
 
         SECTION("Window size is 8")
@@ -273,7 +273,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
 
             auto result{distortion.apply({0.4f, 0.3f, 0.18f, -0.2f, 0.5f, -0.1f, -0.2f, 0.6f})};
             REQUIRE_THAT(result,
-                         EqualsSamples(std::vector<float>{0.2f, 0.2f, 0.18f, -0.2f, 0.25f, -0.1f, -0.2f, 0.3f}));
+                         EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.36f, -0.4f, 0.5f, -0.2f, -0.4f, 0.6f}));
         }
     }
 }

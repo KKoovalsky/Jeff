@@ -48,7 +48,8 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
     using ComputationWindow = std::array<typename BatchOfSamples::value_type, ComputationWindowSize>;
 
   public:
-    explicit BasicWindowedDistortionWithMemory(float threshold) : threshold{threshold}
+    explicit BasicWindowedDistortionWithMemory(float threshold) :
+        threshold{threshold}, normalization_factor{1 / threshold}
     {
         if (threshold < 0.0f)
             throw Error{"Threshold must not be negative"};
@@ -78,6 +79,8 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         }
 
         previous_batch_absolute_values = std::move(current_batch_absolute_values);
+
+        normalize(output_samples);
         return output_samples;
     }
 
@@ -122,7 +125,17 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
             return value;
     }
 
+    void normalize(BatchOfSamples& samples) const noexcept
+    {
+        std::transform(
+            std::begin(samples),
+            std::end(samples),
+            std::begin(samples),
+            [normalization_factor = this->normalization_factor](float v) { return v * normalization_factor; });
+    }
+
     float threshold;
+    float normalization_factor;
     BatchOfSamples previous_batch_absolute_values;
 };
 
