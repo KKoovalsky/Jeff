@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/cmake_helpers-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/freertos_kernel_sources-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/junglescpputils-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/junglesoshelpers-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/printf_library-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/qdsplibrary-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/qdsplibrary-src/infra" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/qdsplibrary-src/infra/external/filesystem" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/qdsplibrary-src/infra/external/optional-lite" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/qdsplibrary-src/infra/external/string-view-lite" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/qdsplibrary-src/q_io/external/portaudio" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/qdsplibrary-src/q_io/external/portmidi" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/ringbuffer-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/unity_project-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release_toolchain_test/_deps/cmake_helpers-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release_toolchain_test/_deps/freertos_kernel_sources-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release_toolchain_test/_deps/junglesoshelpers-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release_toolchain_test/_deps/printf_library-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/build_device_release_toolchain_test/_deps/unity_project-src" vcs="Git" />
   </component>
 </project>
