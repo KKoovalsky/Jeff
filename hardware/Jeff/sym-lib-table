@@ -1,4 +1,5 @@
 (sym_lib_table
   (lib (name SCF_filters)(type Legacy)(uri ${KIPRJMOD}/SCF_filters.lib)(options "")(descr ""))
   (lib (name SwitchedCapacitorVoltageConverters)(type Legacy)(uri ${KIPRJMOD}/SwitchedCapacitorVoltageConverters.lib)(options "")(descr ""))
+  (lib (name PowerSources)(type Legacy)(uri ${KIPRJMOD}/PowerSources.lib)(options "")(descr ""))
 )

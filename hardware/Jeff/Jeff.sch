@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 6
+Sheet 1 7
 Title ""
 Date ""
 Rev ""
@@ -205,4 +205,57 @@ Wire Wire Line
 	2950 2200 2750 2200
 Wire Wire Line
 	2750 2200 2750 2300
+$Sheet
+S 3100 6650 750  200 
+U 621A29F4
+F0 "VddHalfSplitter" 50
+F1 "VddHalfSplitter.sch" 50
+F2 "Vdd" I L 3100 6750 50 
+F3 "Vdd_half" O R 3850 6750 50 
+$EndSheet
+$Comp
+L power:+3.3V #PWR?
+U 1 1 621A9A4A
+P 2850 6650
+F 0 "#PWR?" H 2850 6500 50  0001 C CNN
+F 1 "+3.3V" H 2865 6823 50  0000 C CNN
+F 2 "" H 2850 6650 50  0001 C CNN
+F 3 "" H 2850 6650 50  0001 C CNN
+	1    2850 6650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3100 6750 2850 6750
+Wire Wire Line
+	2850 6750 2850 6650
+$Comp
+L PowerSources:+1V65 #PWR?
+U 1 1 621AA734
+P 4150 6650
+F 0 "#PWR?" H 4150 6500 50  0001 C CNN
+F 1 "+1V65" H 4165 6823 50  0000 C CNN
+F 2 "" H 4150 6650 50  0001 C CNN
+F 3 "" H 4150 6650 50  0001 C CNN
+	1    4150 6650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4150 6650 4150 6750
+Wire Wire Line
+	4150 6750 3850 6750
+$Comp
+L PowerSources:+1V65 #PWR?
+U 1 1 621AB60E
+P 4250 1700
+F 0 "#PWR?" H 4250 1550 50  0001 C CNN
+F 1 "+1V65" H 4265 1873 50  0000 C CNN
+F 2 "" H 4250 1700 50  0001 C CNN
+F 3 "" H 4250 1700 50  0001 C CNN
+	1    4250 1700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4250 1700 4250 1750
+Wire Wire Line
+	4650 1750 4250 1750
 $EndSCHEMATC
