@@ -2,4 +2,5 @@
   (lib (name SCF_filters)(type Legacy)(uri ${KIPRJMOD}/SCF_filters.lib)(options "")(descr ""))
   (lib (name SwitchedCapacitorVoltageConverters)(type Legacy)(uri ${KIPRJMOD}/SwitchedCapacitorVoltageConverters.lib)(options "")(descr ""))
   (lib (name PowerSources)(type Legacy)(uri ${KIPRJMOD}/PowerSources.lib)(options "")(descr ""))
+  (lib (name Nucleo-L432KC)(type Legacy)(uri ${KIPRJMOD}/NUCLEO-L432KC.lib)(options "")(descr ""))
 )
