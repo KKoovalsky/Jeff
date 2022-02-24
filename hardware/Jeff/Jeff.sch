@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 5
+Sheet 1 6
 Title ""
 Date ""
 Rev ""
@@ -56,7 +56,7 @@ Wire Wire Line
 Wire Wire Line
 	2600 1600 2500 1600
 $Sheet
-S 3850 4850 550  900 
+S 6850 3450 550  900 
 U 6216C0D1
 F0 "DcOffsetRemover" 50
 F1 "DcOffsetRemover.sch" 50
@@ -107,4 +107,102 @@ Wire Notes Line
 	8250 800  1000 800 
 Text Notes 1100 2750 0    118  ~ 24
 Analog Front End
+$Comp
+L power:+3.3V #PWR?
+U 1 1 6219044E
+P 2800 1550
+F 0 "#PWR?" H 2800 1400 50  0001 C CNN
+F 1 "+3.3V" H 2815 1723 50  0000 C CNN
+F 2 "" H 2800 1550 50  0001 C CNN
+F 3 "" H 2800 1550 50  0001 C CNN
+	1    2800 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 1600 2800 1600
+Wire Wire Line
+	2800 1600 2800 1550
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62191985
+P 4500 1550
+F 0 "#PWR?" H 4500 1400 50  0001 C CNN
+F 1 "+3.3V" H 4515 1723 50  0000 C CNN
+F 2 "" H 4500 1550 50  0001 C CNN
+F 3 "" H 4500 1550 50  0001 C CNN
+	1    4500 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4650 1600 4500 1600
+Wire Wire Line
+	4500 1600 4500 1550
+$Comp
+L power:+3.3V #PWR?
+U 1 1 621932B2
+P 6150 1550
+F 0 "#PWR?" H 6150 1400 50  0001 C CNN
+F 1 "+3.3V" H 6165 1723 50  0000 C CNN
+F 2 "" H 6150 1550 50  0001 C CNN
+F 3 "" H 6150 1550 50  0001 C CNN
+	1    6150 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6300 1600 6150 1600
+Wire Wire Line
+	6150 1600 6150 1550
+$Sheet
+S 1300 6650 750  200 
+U 6219438A
+F0 "NegativeVoltageGenerator" 50
+F1 "NegativeVoltageGenerator.sch" 50
+F2 "Vdd" I L 1300 6750 50 
+F3 "-Vdd" O R 2050 6750 50 
+$EndSheet
+$Comp
+L power:+3.3V #PWR?
+U 1 1 6219F15D
+P 1050 6650
+F 0 "#PWR?" H 1050 6500 50  0001 C CNN
+F 1 "+3.3V" H 1065 6823 50  0000 C CNN
+F 2 "" H 1050 6650 50  0001 C CNN
+F 3 "" H 1050 6650 50  0001 C CNN
+	1    1050 6650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1300 6750 1050 6750
+Wire Wire Line
+	1050 6750 1050 6650
+$Comp
+L power:-3V3 #PWR?
+U 1 1 6219FAA4
+P 2250 7000
+F 0 "#PWR?" H 2250 7100 50  0001 C CNN
+F 1 "-3V3" H 2265 7173 50  0000 C CNN
+F 2 "" H 2250 7000 50  0001 C CNN
+F 3 "" H 2250 7000 50  0001 C CNN
+	1    2250 7000
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	2050 6750 2250 6750
+Wire Wire Line
+	2250 6750 2250 7000
+$Comp
+L power:-3V3 #PWR?
+U 1 1 621A13F6
+P 2750 2300
+F 0 "#PWR?" H 2750 2400 50  0001 C CNN
+F 1 "-3V3" H 2765 2473 50  0000 C CNN
+F 2 "" H 2750 2300 50  0001 C CNN
+F 3 "" H 2750 2300 50  0001 C CNN
+	1    2750 2300
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	2950 2200 2750 2200
+Wire Wire Line
+	2750 2200 2750 2300
 $EndSCHEMATC
