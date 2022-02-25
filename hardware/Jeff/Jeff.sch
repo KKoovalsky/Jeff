@@ -78,7 +78,7 @@ Text Notes 4900 2100 0    50   ~ 0
 $Sheet
 S 5950 1350 550  900 
 U 621761CD
-F0 "AudioLowPassFilter" 50
+F0 "AntiAliasingFilter" 50
 F1 "AudioLowPassFilter.sch" 50
 F2 "Vdd" I L 5950 1500 50 
 F3 "In" I L 5950 1800 50 
