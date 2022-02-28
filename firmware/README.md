@@ -1,5 +1,7 @@
 # Jeff - **J**ungles Guitar **Eff**ect
 
+TODO: one big README.md
+
 1. [Building, running and testing](docs/build_run_test.md)
 2. [Firmware architecture](docs/architecture.md)
 

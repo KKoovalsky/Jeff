@@ -40,6 +40,46 @@ DMA buffer, the raw samples are converted according to voltage levels and offset
 propagated to the `AudioChain`.
 
 The `ThreadedAudioDac` works in similar way. On each half-piece transfer end, the `AudioChain` is asked for new samples,
-which are copied to the DMA buffer (which is obviously not the same DMA buffer used by `ThreadedAudioSampler`). The 
+which are copied to the DMA buffer (which is obviously not the same DMA buffer used by the `ThreadedAudioSampler`). The 
 batch is copied to the DMA buffer in such a way to overwrite the previously transferred half-piece.
 
+# Guitar Effects
+
+## Distortion
+
+To flash the app:
+
+```
+cmake --build . --target distortion_app-flash
+```
+
+Distortion tests can be found under `test_basic_windowed_distortion_with_memory.cpp`.
+
+Basic distortion operation is that the peaks are sheared. Since we handle samples in batches, the implementation
+must be adapted a bit.
+
+The principle of operation is that for each sample, a window is considered:
+
+![windowing](diagrams/windowing.drawio.png)
+
+The computation window is two concatenated batches of samples: the previous batch supplied to the distortion effect
+and the current one.
+
+The distortion has a parameter, which is a **Threshold** in range (0;1), which defines the effect's intensity. The lower
+the threshold the intensity is higher. The threshold corresponds to the place on the signal peak where the signal
+should be sheared.
+
+Then, for each window:
+
+1. Find absolute maximum = **AbsMax**.
+2. Get the clipping threshold: **AbsClipThresh = AbsMax * Threshold**.
+3. Get the absolute value of the last sample within the window: **AbsS**.
+4. If **AbsS** is higher than **AbsClipThresh**, then new value is equal to **AbsClipThresh**, preserving the original 
+sign (+ or -) of the sample.
+5. Otherwise, leave the value untouched.
+
+Let's consider a simple example, with a window with size 4:
+
+![distortion_example](diagrams/distortion_example.drawio.png)
+
+# Creating new Guitar Effects
