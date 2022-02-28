@@ -6,8 +6,8 @@ logic, utilities, etc. - everything what is not related to hardware.
 
 This splitting has direct effect on the directory tree. The `src` directory contains all the common code, that can
 be used by the device, but also on the host machine. Likewise, the `tests/` directory is split, and contains `device` 
-and `host` directories. The latter contains [the host-side tests](#host_side_tests). The former contains 
-[device tests](#device_tests).
+and `host` directories. The latter contains [the host-side tests](#host-side-tests). The former contains 
+[device tests](#device-tests).
 
 Testing as much as possible on the host-machine has multiple advantages. The major once are: the possibility of
 using `valgrind`, quick testing (without the need of flashing firmware), quick debugging, more computation power.
