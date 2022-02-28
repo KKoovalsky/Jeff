@@ -4,7 +4,7 @@
 
 The audio chain represents the natural signal flow:
 
-![AudioChain](docs/diagrams/audio_chain.drawio.png)
+![AudioChain](diagrams/audio_chain.drawio.png)
 
 The basic principle is that there is an `AudioChain` class which takes three interfaces:
 
@@ -33,7 +33,7 @@ the buffer continuously, the buffer is a circular (ring) buffer. The size of the
 because on each half-buffer update a full window may be retrieved. This allows continuous sampling without pauses,
 and without overwriting of the values.
 
-![dma_operation](docs/diagrams/dma_operation.drawio.png)
+![dma_operation](diagrams/dma_operation.drawio.png)
 
 For the `ThreadedAudioSampler`, on each half-piece update, the freshly updated half-piece is copied from the
 DMA buffer, the raw samples are converted according to voltage levels and offset, and such converted samples are 
