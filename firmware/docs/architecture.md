@@ -66,7 +66,7 @@ The computation window is two concatenated batches of samples: the previous batc
 and the current one.
 
 The distortion has a parameter, which is a **Threshold** in range (0;1), which defines the effect's intensity. The lower
-the threshold the intensity is higher. The threshold corresponds to the place on the signal peak where the signal
+the threshold the higher the intensity. The threshold corresponds to the place on the signal peak where the signal
 should be sheared.
 
 Then, for each window:
