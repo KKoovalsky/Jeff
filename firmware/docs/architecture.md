@@ -82,4 +82,9 @@ Let's consider a simple example, with a window with size 4:
 
 ![distortion_example](diagrams/distortion_example.drawio.png)
 
+This implementation is naive and we could optimize it a little, by e.g. introducing window steps, to prevent from
+finding maximum for each window, but for each 2-step, or 4-step, ... It might be configurable. Other optimization
+may be intelligent maximum finding, which would find absolute maximums for non-overlapping ranges. The current
+time complexity is `O(n^2)`, where `n` is the window size.
+
 # Creating new Guitar Effects
