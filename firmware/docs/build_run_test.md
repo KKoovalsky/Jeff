@@ -9,7 +9,7 @@ be used by the device, but also on the host machine. Likewise, the `tests/` dire
 and `host` directories. The latter contains [the host-side tests](#host-side-tests). The former contains 
 [device tests](#device-tests).
 
-Testing as much as possible on the host-machine has multiple advantages. The major once are: the possibility of
+Testing as much as possible on the host-machine has multiple advantages. The major ones are: the possibility of
 using `valgrind`, quick testing (without the need of flashing firmware), quick debugging, more computation power.
 
 This is intended to be run under Linux, but it might work for Windows as well with few tweaks. 
