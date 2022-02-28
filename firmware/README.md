@@ -7,8 +7,6 @@ TODO: one big README.md
 
 TODO define:
 
-* architecture (audio chain, jeff app wrapper, batches of samples, how is DMA used - so how are batches supplied, ...)
 * creating new apps
 * helper scripts (to check DFT, see clipping, etc)
-* distortion implementation
 * document miscellaneous: sampling trigger timer, filter cutoff frequency setter clock.
