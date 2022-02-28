@@ -151,6 +151,9 @@ Observe the clock on the A5 Nucleo board pin (PA6).
 
 ```
 ctest -R test_benchmark_timer
+
+# Tests various functions of the serial_logger. See tests/device/test_serial_logger for more details.
+ctest -L serial_logger
 ```
 
 # Host-side tests
