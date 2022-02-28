@@ -1,12 +1,11 @@
 # Jeff - **J**ungles Guitar **Eff**ect
 
-1. [Device tests](docs/device_tests.md)
+1. [Building, running and testing](docs/build_run_test.md)
 
 TODO define:
 
-* building device build
-* host side tests
+* architecture (audio chain, jeff app wrapper, batches of samples, how is DMA used - so how are batches supplied, ...)
 * testing serial logs
-* flashing the app
-* architecture
 * creating new apps
+* helper scripts (to check DFT, see clipping, etc)
+* distortion implementation
