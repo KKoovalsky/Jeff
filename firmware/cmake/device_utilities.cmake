@@ -19,6 +19,14 @@ function(AddCommandWhichRunsDevice)
 
 endfunction()
 
+function(AddGdbServerRunner)
+
+    add_custom_target(run_gdb_server
+        COMMAND ${OPENOCD_PROGRAM} -f board/stm32l4discovery.cfg
+        VERBATIM
+    )
+
+endfunction()
 
 
 ##########################################################################################
@@ -26,3 +34,4 @@ endfunction()
 ##########################################################################################
 AddCommandWhichHaltsDevice()
 AddCommandWhichRunsDevice()
+AddGdbServerRunner()
