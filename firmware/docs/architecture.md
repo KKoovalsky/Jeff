@@ -93,7 +93,7 @@ may be intelligent maximum finding, which would find absolute maximums for non-o
 time complexity is `O(n^2)`, where `n` is the window size. This doesn't create problems so far, because the current 
 implementation fits into the schedule.
 
-# Creating new Guitar Effects
+# Creating a new Guitar Effect
 
 1. (optional) Simulate the effect's operation using some Python (or other language) scripting. See `hard_clipping` 
 examples in the `scripts/` directory. This step should basically at least conclude: "It might work!".
@@ -108,3 +108,14 @@ which is a wrapper on top of the `AudioChain`, but it already instantiates the `
 implementers for you.
 5. Flash the app and play the guitar! :guitar:
 
+# Contributing
+
+If you would like to implement a guitar effect (see [Creating a new Guitar Effect](creating-a-new-guitar-effect),
+the best first step would be to get the hardware. Currently, no PCB design is made, the only prototype is 
+hand-soldered-ugly-garage-like-board, so you can create one on your own. On the other hand, still lot of things can
+be implemented without hardware, so it would be better to firstly create an issue and then align on the requirements
+for the task to be done.
+
+So, the universal approach:
+1. Create an issue.
+2. We will answer to align on the task. 
