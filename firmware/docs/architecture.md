@@ -83,13 +83,28 @@ Then, for each window:
 sign (+ or -) of the sample.
 5. Otherwise, leave the value untouched.
 
-Let's consider a simple example, with a window with size 4:
+Let's consider a simple example, with a window size equal to 4:
 
 ![distortion_example](diagrams/distortion_example.drawio.png)
 
 This implementation is naive and we could optimize it a little, by e.g. introducing window steps, to prevent from
 finding maximum for each window, but for each 2-step, or 4-step, ... It might be configurable. Other optimization
 may be intelligent maximum finding, which would find absolute maximums for non-overlapping ranges. The current
-time complexity is `O(n^2)`, where `n` is the window size.
+time complexity is `O(n^2)`, where `n` is the window size. This doesn't create problems so far, because the current 
+implementation fits into the schedule.
 
 # Creating new Guitar Effects
+
+1. (optional) Simulate the effect's operation using some Python (or other language) scripting. See `hard_clipping` 
+examples in the `scripts/` directory. This step should basically at least conclude: "It might work!".
+2. Implement and test the new guitar effect on the host machine. Put the implementation to the `src/common/` directory
+and the tests under `tests/host/`. See `test_basic_windowed_distortion_with_memory.cpp` as an example of the tests.
+3. Implement benchmarks run on the device for the effect. See `test_distortion_benchmark.cpp` as an example. The call
+to `apply()` must not take less than 1.2 ms. The 1.2 ms comes from the period of time between supply of each consecutive
+batches of samples. Having a window size 64, and 44.1 kHz sampling rate, each batch comes after around 1.45 ms from
+the previous one (64 / 44.1 kHz ~= 1.45 ms). We assume some margin for ADC, DAC and context switching.
+4. Create a new application under the `device/` directory (similar to `distortion_app`). Make use of `JeffAppWrapper`,
+which is a wrapper on top of the `AudioChain`, but it already instantiates the `AudioSampler` and `AudioDac` 
+implementers for you.
+5. Flash the app and play the guitar!
+
