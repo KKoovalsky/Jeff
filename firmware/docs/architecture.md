@@ -22,6 +22,11 @@ testable on the host machine.
 The batch of samples is a templated type, because its type is an implementation detail. Currently, the batches are 
 handled through callbacks, but it shall be refactored to make `AudioSampler` and `AudioDac` awaitable.
 
+Samples are organized in batches, because in the end they would have to be organized in batches. Effects operate on 
+windows and window is a group (batch) of samples. Moreover, we prevent from frequent context switching. In the case 
+the interrupt is raised on each sample, it explodes the number of context switches. This is a typical pattern in DSP,
+that samples are grouped into batches.
+
 There is `AudioChainConfig::BatchOfSamples` type defined which defines the type which is currently used as the type
 for batch of samples. It defines the batch size as well (the window size). The window size must be a predefined 
 config constant, to know in advance the buffer sizes DMA operates on.
