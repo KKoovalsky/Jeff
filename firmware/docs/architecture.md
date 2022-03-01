@@ -77,9 +77,18 @@ batch is copied to the DMA buffer in such a way to overwrite the previously tran
 
 ### FilterCutoffSetterClock
 
+Since the post-DAC filter and anti-aliasing filter cutoff frequency is programmed using a clock, we have to generate
+it by firmware. This component is responsible for that.
+
 ### SamplingTriggerTimer
 
+The ADC and DAC must be in sync, thus the sampling trigger timer is used both in `ThreadedAudioSampler` and
+`ThreadedAudioDac` to trigger sampling in both components at the same time. `SamplingTriggerTimerImpl` implements
+the `SamplingTriggerTimer` interface, and it implements simple reference (start/stop) count to clock both modules.
+
 ### BenchmarkTimer
+
+It is used to count time e.g. for benchmarking.
 
 # Guitar Effects
 
