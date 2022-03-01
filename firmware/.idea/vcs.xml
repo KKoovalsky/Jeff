@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
-    <mapping directory="$PROJECT_DIR$/.." vcs="" />
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/cmake_helpers-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/freertos_kernel_sources-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/build/build_device_release/_deps/junglescpputils-src" vcs="Git" />
