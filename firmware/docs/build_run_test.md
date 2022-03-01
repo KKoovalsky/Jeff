@@ -1,17 +1,5 @@
 # Building, running and testing
 
-This project supports device-side and host-side build. The logic of the application can be tested on the host machine. 
-It means that all the guitar effects implementation shall be testable on the development computer, as well as all the 
-logic, utilities, etc. - everything what is not related to hardware.
-
-This splitting has direct effect on the directory tree. The `src` directory contains all the common code, that can
-be used by the device, but also on the host machine. Likewise, the `tests/` directory is split, and contains `device` 
-and `host` directories. The latter contains [the host-side tests](#host-side-tests). The former contains 
-[device tests](#device-tests).
-
-Testing as much as possible on the host-machine has multiple advantages. The major ones are: the possibility of
-using `valgrind`, quick testing (without the need of flashing firmware), quick debugging, more computation power.
-
 This is intended to be run under Linux, but it might work for Windows as well with few tweaks. 
 
 To prepare for building and testing one should run from the `firmware/` directory:

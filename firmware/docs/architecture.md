@@ -1,5 +1,30 @@
 # Firmware Architecture
 
+## Directory structure
+
+This project supports device-side and host-side build. The logic of the application can be tested on the host machine. 
+It means that all the guitar effects implementation shall be testable on the development computer, as well as all the 
+logic, utilities, etc. - everything what is not related to hardware.
+
+This splitting has direct effect on the directory tree. The `src` directory contains all the common code, that can
+be used by the device, but also on the host machine. Likewise, the `tests/` directory is split, and contains `device` 
+and `host` directories. The latter contains [the host-side tests](#host-side-tests). The former contains 
+[device tests](#device-tests).
+
+Testing as much as possible on the host-machine has multiple advantages. The major ones are: the possibility of
+using `valgrind`, quick testing (without the need of flashing firmware), quick debugging, more computation power.
+
+The common code within the `src/common/` directory comprises interface definition, high-level software modules, 
+dummy-doing-nothing implementations, ... The `device/` directory contains firmware components which implement 
+the interfaces defined in the `src/common/` directory. It also contains the firmware applications, RTOS utilities
+and Cube generated code. The firmware components are C++ classes which often utilize the Cube generated code.
+
+In the `scripts/` directory one can find scripts, which perform some DSP on the host machine, to figure out various
+signal properties, DFTs, etc. This should help in filter design, knowing what to expect on the oscilloscope screen, etc.
+See e.g. `hard_clipping.py` as an example. 
+
+`cmake/` directory contains CMake helper scripts and functions, which are put there for legibility (clean code, etc.).
+
 ## The Audio Chain
 
 The audio chain represents the natural signal flow:
@@ -47,6 +72,14 @@ propagated to the `AudioChain`.
 The `ThreadedAudioDac` works in similar way. On each half-piece transfer end, the `AudioChain` is asked for new samples,
 which are copied to the DMA buffer (which is obviously not the same DMA buffer used by the `ThreadedAudioSampler`). The 
 batch is copied to the DMA buffer in such a way to overwrite the previously transferred half-piece.
+
+## Firmware components
+
+### FilterCutoffSetterClock
+
+### SamplingTriggerTimer
+
+### BenchmarkTimer
 
 # Guitar Effects
 
