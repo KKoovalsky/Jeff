@@ -13,9 +13,9 @@ struct EventTracer
     virtual void capture(std::string_view event) = 0;
     virtual ~EventTracer() = default;
 
-    struct RainEventsCaptor
+    struct RaiiEventsCaptor
     {
-        explicit RainEventsCaptor(EventTracer& event_tracer,
+        explicit RaiiEventsCaptor(EventTracer& event_tracer,
                                   std::string_view event_begin_message,
                                   std::string_view event_end_message) :
             event_tracer{event_tracer}, event_begin_message{event_begin_message}, event_end_message{event_end_message}
@@ -23,7 +23,7 @@ struct EventTracer
             event_tracer.capture(event_begin_message);
         }
 
-        ~RainEventsCaptor()
+        ~RaiiEventsCaptor()
         {
             event_tracer.capture(event_end_message);
         }
@@ -38,10 +38,10 @@ struct EventTracer
      * Creates a RAII object, which calls EventTracer&::capture() with corresponding messages on construction and
      * destruction of the RAII object.
      */
-    [[nodiscard]] RainEventsCaptor make_raii_events_captor(std::string_view event_begin_message,
+    [[nodiscard]] RaiiEventsCaptor make_raii_events_captor(std::string_view event_begin_message,
                                                            std::string_view event_end_message)
     {
-        return RainEventsCaptor(*this, event_begin_message, event_end_message);
+        return RaiiEventsCaptor(*this, event_begin_message, event_end_message);
     }
 };
 
