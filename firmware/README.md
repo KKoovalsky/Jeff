@@ -1,5 +1,13 @@
 # Jeff - **J**ungles Guitar **Eff**ect
 
+# Table of Contents
+
+- [Building, running and testing](#building-running-and-testing)
+- [Firmware Architecture](#firmware-architecture)
+- [Guitar Effects](#guitar-effects)
+- [Creating a new Guitar Effect](#creating-a-new-guitar-effect)
+- [Contributing](#contributing)
+
 # Building, running and testing
 
 This is intended to be run under Linux, but it might work for Windows as well with few tweaks. 
@@ -12,7 +20,7 @@ mkdir -p build/build_{host,device}_{debug,release}
 
 This will prepare empty directories for host-side and device-side builds, for Debug and Release configuration.
 
-# Building firmware
+## Building firmware
 
 ```
 cd build/build_device_release
@@ -28,7 +36,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug ../../device
 cmake --build .
 ```
 
-# Setting up the device
+## Setting up the device
 
 Currently, NUCLEO-L432KC (STM32L432KC-Nucleo) is used, so all the flasher scripts use `openocd`. The Nucleo board has
 on-board programmer, but STLinkV2 or JLink could work too. Anyway, the requirements:
@@ -64,11 +72,11 @@ cmake -DJEFF_SERIAL_PORT:STRING=/dev/ttyUSB0 ../../device
 cmake --build . --target distortion_app-flash
 ```
 
-# Device tests
+## Device tests
 
 CTest module is used to run the tests. One can use `--verbose` flag to see more output, or `--output-on-failure`.
 
-## 1. Audio sampler tests
+### 1. Audio sampler tests
 
 Basic tests, which check the basic module operation (without signal generations checks) can be run with:
 
@@ -95,7 +103,7 @@ The test calculates FFT and checks whether the corresponding spike is in the sig
 power of the corresponding spike: power of the spike is divided by the sum of powers of other frequencies. If the SNR is
 higher than 0.5 (or around that value), then the test is successful.
 
-## 2. Audio DAC tests
+### 2. Audio DAC tests
 
 Running basic module tests, for firmware correctness:
 
@@ -112,7 +120,7 @@ cmake --build . --target test_audio_dac_generates_sine_1khz-flash
 Then connect oscilloscope to the Nucleo board pin A3 (PA4) to verify whether ~ <0;3V3>, 1kHz sine wave is at the output.
 The sine wave will of course be stepwise.
 
-## 3. Test audio chain
+### 3. Test audio chain
 
 To verify basic application without any guitar effect, one can run:
 
@@ -126,7 +134,7 @@ input signal applied (see the explanation in the [Audio sampler tests](#1-audio-
 signal can be observed on the Nucleo board pin A3 (PA4). One can e.g. apply sine wave and change it frequency. The
 output signal shall change accordingly.
 
-## 4. Test clock generation for filter cutoff frequency
+### 4. Test clock generation for filter cutoff frequency
 
 We use SCF filters for post-DAC and anti-aliasing, thus we need to generate clock for the filters. To generate the clock
 only (run the app that starts the clock and no more), run:
@@ -137,7 +145,7 @@ cmake --build . --target test_filter_cutoff_setter_clock-flash
 
 Observe the clock on the A5 Nucleo board pin (PA6).
 
-## 5. Miscellaneous automatic tests
+### 5. Miscellaneous automatic tests
 
 ```
 ctest -R test_benchmark_timer
@@ -146,7 +154,7 @@ ctest -R test_benchmark_timer
 ctest -L serial_logger
 ```
 
-# Host-side tests
+## Host-side tests
 
 The host-side tests verify the logic of the application, test the high level modules, etc. To build and run them:
 
@@ -164,7 +172,7 @@ cd build/build_host_debug
 cmake -DCMAKE_BUILD_TYPE=Debug ../../host
 ```
 
-# Debugging
+## Debugging
 
 `gdb_multiarch` must be installed on the host machine. To debug:
 
