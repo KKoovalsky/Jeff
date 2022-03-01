@@ -106,5 +106,5 @@ the previous one (64 / 44.1 kHz ~= 1.45 ms). We assume some margin for ADC, DAC 
 4. Create a new application under the `device/` directory (similar to `distortion_app`). Make use of `JeffAppWrapper`,
 which is a wrapper on top of the `AudioChain`, but it already instantiates the `AudioSampler` and `AudioDac` 
 implementers for you.
-5. Flash the app and play the guitar!
+5. Flash the app and play the guitar! :guitar:
 
