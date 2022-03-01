@@ -126,7 +126,7 @@ input signal applied (see the explanation in the [Audio sampler tests](#1-audio-
 signal can be observed on the Nucleo board pin A3 (PA4). One can e.g. apply sine wave and change it frequency. The
 output signal shall change accordingly.
 
-# 4. Test clock generation for filter cutoff frequency
+## 4. Test clock generation for filter cutoff frequency
 
 We use SCF filters for post-DAC and anti-aliasing, thus we need to generate clock for the filters. To generate the clock
 only (run the app that starts the clock and no more), run:
@@ -137,7 +137,7 @@ cmake --build . --target test_filter_cutoff_setter_clock-flash
 
 Observe the clock on the A5 Nucleo board pin (PA6).
 
-# 5. Miscellaneous automatic tests
+## 5. Miscellaneous automatic tests
 
 ```
 ctest -R test_benchmark_timer
@@ -331,7 +331,7 @@ implementers for you.
 
 # Contributing
 
-If you would like to implement a guitar effect (see [Creating a new Guitar Effect](creating-a-new-guitar-effect),
+If you would like to implement a guitar effect (see [Creating a new Guitar Effect](#creating-a-new-guitar-effect)),
 the best first step would be to get the hardware. Currently, no PCB design is made, the only prototype is 
 hand-soldered-ugly-garage-like-board, so you can create one on your own. On the other hand, still lot of things can
 be implemented without hardware, so it would be better to firstly create an issue and then align on the requirements
