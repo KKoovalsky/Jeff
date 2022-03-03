@@ -24,6 +24,7 @@ set(CMAKE_C_EXTENSIONS ON)
 DownloadAndPopulateJunglesCMakeHelpers()
 ProvideFreertos()
 ProvideJunglesOsHelpers()
+target_link_libraries(JunglesOsHelpers INTERFACE freertos)
 
 include(../cmake/device_executable.cmake)
 include(../cmake/host_tools.cmake)

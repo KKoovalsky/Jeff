@@ -88,7 +88,6 @@ function(ProvideJunglesOsHelpers)
     )
 
     FetchContent_MakeAvailable(JunglesOsHelpers)
-    target_link_libraries(JunglesOsHelpers INTERFACE freertos)
 
 endfunction()
 
