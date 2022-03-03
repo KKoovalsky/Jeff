@@ -26,14 +26,6 @@ class AudioChain
                         EventTracer& event_tracer) :
         audio_sampler{audio_sampler}, guitar_effect{guitar_effect}, audio_dac{audio_dac}, event_tracer{event_tracer}
     {
-        // TODO: start() and stop() might not be necessary.
-
-        audio_sampler.start();
-
-        // TODO: might implement DAC start delay by asking some Timer for delaying, and by asking the DAC and the
-        // sampler for sampling frequency, and also throw if it is different (might be also a constexpr check).
-
-        audio_dac.start();
     }
 
     void run()

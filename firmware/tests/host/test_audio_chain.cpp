@@ -21,11 +21,6 @@ using BatchOfSamples = AudioBuffer;
 
 struct AudioSamplerMock : AudioSampler<BatchOfSamples>
 {
-    void start() override
-    {
-        is_started = true;
-    }
-
     BatchOfSamples await_samples() override
     {
         if (samples_collected_handler)
@@ -34,13 +29,7 @@ struct AudioSamplerMock : AudioSampler<BatchOfSamples>
             return BatchOfSamples{};
     }
 
-    void stop() override
-    {
-        is_started = false;
-    }
-
     std::function<BatchOfSamples()> samples_collected_handler;
-    bool is_started{false};
 };
 
 struct GuitarEffectMock : GuitarEffect<BatchOfSamples>
@@ -58,16 +47,6 @@ struct GuitarEffectMock : GuitarEffect<BatchOfSamples>
 
 struct AudioDacMock : AudioDac<BatchOfSamples>
 {
-    void start() override
-    {
-        is_started = true;
-    }
-
-    void stop() override
-    {
-        is_started = false;
-    }
-
     void await_stream_update(BatchOfSamples samples) override
     {
         if (stream_updater)
@@ -75,7 +54,6 @@ struct AudioDacMock : AudioDac<BatchOfSamples>
     }
 
     std::function<void(BatchOfSamples)> stream_updater;
-    bool is_started;
 };
 
 TEST_CASE("AudioChain applies effect to samples and forwards it to DAC", "[audio_chain]")
@@ -189,29 +167,5 @@ TEST_CASE("AudioChain applies effect to samples and forwards it to DAC", "[audio
 
         audio_chain.stop();
         t.join();
-    }
-
-    SECTION("Starts the sampler at the beginning")
-    {
-        auto audio_chain{make_audio_chain_under_test()};
-        REQUIRE(audio_sampler.is_started);
-    }
-
-    SECTION("Starts the dac at the beginning")
-    {
-        auto audio_chain{make_audio_chain_under_test()};
-        REQUIRE(audio_dac.is_started);
-    }
-
-    SECTION("Stops the sampler at the end")
-    {
-        make_audio_chain_under_test();
-        REQUIRE_FALSE(audio_sampler.is_started);
-    }
-
-    SECTION("Stops the dac at the end")
-    {
-        make_audio_chain_under_test();
-        REQUIRE_FALSE(audio_dac.is_started);
     }
 }
