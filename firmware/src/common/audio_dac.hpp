@@ -12,11 +12,7 @@
 template<typename BatchOfSamples>
 struct AudioDac
 {
-    using Handler = std::function<BatchOfSamples()>;
-
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void set_on_stream_update_handler(Handler) = 0;
+    virtual void await_stream_update(BatchOfSamples) = 0;
 
     struct Error : std::exception
     {

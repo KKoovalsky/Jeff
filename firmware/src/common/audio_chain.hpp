@@ -11,11 +11,12 @@
 #include "event_tracer.hpp"
 #include "guitar_effect.hpp"
 
+#include <atomic>
 #include <concepts>
-#include <mutex>
-#include <queue>
 
-template<typename Mutex, typename BatchOfSamples>
+#include <iostream>
+
+template<typename BatchOfSamples>
 class AudioChain
 {
   public:
@@ -25,18 +26,7 @@ class AudioChain
                         EventTracer& event_tracer) :
         audio_sampler{audio_sampler}, guitar_effect{guitar_effect}, audio_dac{audio_dac}, event_tracer{event_tracer}
     {
-        audio_sampler.set_on_batch_of_samples_received_handler([this](auto samples) {
-            auto raii_events_captor{this->event_tracer.make_raii_events_captor(
-                "AudioChain: ADC samples received callback begin", "AudioChain: ADC samples received callback end")};
-            std::lock_guard g{queue_mutex};
-            queue_with_batches_of_samples.push(std::move(samples));
-        });
-
-        audio_dac.set_on_stream_update_handler([this]() {
-            auto raii_events_captor{this->event_tracer.make_raii_events_captor(
-                "AudioChain: DAC stream update callback begin", "AudioChain: DAC stream update callback end")};
-            return this->guitar_effect.apply(pop_next_batch_of_samples());
-        });
+        // TODO: start() and stop() might not be necessary.
 
         audio_sampler.start();
 
@@ -46,6 +36,25 @@ class AudioChain
         audio_dac.start();
     }
 
+    void run()
+    {
+        while (!is_stopped)
+        {
+            event_tracer.capture("AudioChain: AudioSampler begin");
+            auto new_batch_of_samples{audio_sampler.await_samples()};
+            event_tracer.capture("AudioChain: AudioSampler end, GuitarEffect begin");
+            auto mutated_samples{guitar_effect.apply(std::move(new_batch_of_samples))};
+            event_tracer.capture("AudioChain: GuitarEffect end, AudioDac begin");
+            audio_dac.await_stream_update(std::move(mutated_samples));
+            event_tracer.capture("AudioChain: AudioDac end");
+        }
+    }
+
+    void stop()
+    {
+        is_stopped = true;
+    }
+
     ~AudioChain()
     {
         audio_dac.stop();
@@ -53,21 +62,12 @@ class AudioChain
     }
 
   private:
-    BatchOfSamples pop_next_batch_of_samples()
-    {
-        std::lock_guard g{queue_mutex};
-        auto batch{std::move(queue_with_batches_of_samples.front())};
-        queue_with_batches_of_samples.pop();
-        return batch;
-    }
-
     AudioSampler<BatchOfSamples>& audio_sampler;
     GuitarEffect<BatchOfSamples>& guitar_effect;
     AudioDac<BatchOfSamples>& audio_dac;
     EventTracer& event_tracer;
 
-    Mutex queue_mutex;
-    std::queue<BatchOfSamples> queue_with_batches_of_samples;
+    std::atomic_bool is_stopped{false};
 };
 
 #endif /* AUDIO_CHAIN_HPP */
