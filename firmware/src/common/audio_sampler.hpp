@@ -12,9 +12,7 @@
 template<typename BatchOfSamples>
 struct AudioSampler
 {
-    virtual void start() = 0;
     virtual BatchOfSamples await_samples() = 0;
-    virtual void stop() = 0;
 
     virtual ~AudioSampler() = default;
 
