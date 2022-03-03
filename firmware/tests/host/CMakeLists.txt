@@ -7,7 +7,10 @@ function(CreateHostTests)
         test_audio_chain.cpp
         test_basic_windowed_distortion_with_memory.cpp
     )
-    target_link_libraries(jeff_host_tests PRIVATE jeff_common Catch2::Catch2WithMain)
+    target_link_libraries(jeff_host_tests PRIVATE jeff_common Catch2::Catch2WithMain jungles::os_helpers)
+
+    find_package(Threads REQUIRED)
+    target_link_libraries(jeff_host_tests PRIVATE Threads::Threads)
 
     add_test(NAME jeff_host COMMAND valgrind --leak-check=full $<TARGET_FILE:jeff_host_tests>)
 
@@ -18,4 +21,5 @@ endfunction()
 # =============================================================================
 
 ProvideCatch2()
+ProvideJunglesOsHelpers()
 CreateHostTests()

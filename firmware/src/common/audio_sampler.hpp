@@ -12,10 +12,8 @@
 template<typename BatchOfSamples>
 struct AudioSampler
 {
-    using Handler = std::function<void(BatchOfSamples)>;
-
-    virtual void set_on_batch_of_samples_received_handler(Handler) = 0;
     virtual void start() = 0;
+    virtual BatchOfSamples await_samples() = 0;
     virtual void stop() = 0;
 
     virtual ~AudioSampler() = default;
