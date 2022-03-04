@@ -117,7 +117,7 @@ void ThreadedAudioDac::disable_dac()
     LL_DAC_Disable(DAC1, LL_DAC_CHANNEL_1);
 }
 
-void ThreadedAudioDac::set_on_stream_update_handler(AudioDac::Handler handler)
+void ThreadedAudioDac::set_on_stream_update_handler(Handler handler)
 {
     stream_update_handler = std::move(handler);
 }
@@ -215,4 +215,8 @@ void ThreadedAudioDac::thread_code()
 
         event_tracer.capture("ThreadedAudioDac: end");
     }
+}
+
+void ThreadedAudioDac::await_stream_update(ThreadedAudioDac::BatchOfSamples)
+{
 }

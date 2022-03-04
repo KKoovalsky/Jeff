@@ -30,9 +30,14 @@ class ThreadedAudioDac : public AudioDacInterface, jungles::Singleton<AudioDacIn
     explicit ThreadedAudioDac(SamplingTriggerTimer&, EventTracer&);
     ~ThreadedAudioDac() override;
 
-    void start() override;
-    void stop() override;
-    void set_on_stream_update_handler(Handler) override;
+    using BatchOfSamples = AudioChainConfig::BatchOfSamples;
+    using Handler = std::function<BatchOfSamples(void)>;
+
+    void start();
+    void stop();
+    void set_on_stream_update_handler(Handler);
+
+    void await_stream_update(BatchOfSamples) override;
 
   private:
     void configure_dma();
@@ -55,7 +60,7 @@ class ThreadedAudioDac : public AudioDacInterface, jungles::Singleton<AudioDacIn
     Handler stream_update_handler;
     SamplingTriggerTimer& sampling_trigger_timer;
 
-    EventTracer &event_tracer;
+    EventTracer& event_tracer;
 
     EventGroupHandle_t event_group_handle;
 
