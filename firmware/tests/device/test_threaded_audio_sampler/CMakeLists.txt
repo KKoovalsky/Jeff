@@ -16,7 +16,7 @@ endfunction()
 add_executable(test_threaded_audio_sampler test_threaded_audio_sampler.cpp)
 ToDeviceTest(test_threaded_audio_sampler test_threaded_audio_sampler)
 target_link_libraries(test_threaded_audio_sampler PRIVATE
-    threaded_audio_sampler jungles::os_helpers os_utils serial_logger sampling_trigger_timer_impl)
+    threaded_audio_sampler serial_logger sampling_trigger_timer_impl benchmark_timer os_utils)
 
 add_library(test_sample_sine test_sample_sine.cpp)
 target_link_libraries(test_sample_sine PRIVATE

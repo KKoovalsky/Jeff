@@ -24,8 +24,7 @@ enum class ThreadedAudioSamplerEvent : EventBits_t
 {
     half_transfer = 0b001,
     full_transfer = 0b010,
-    quit = 0b100,
-    any = 0b111
+    any = 0b011
 };
 
 template<typename Enum>
@@ -37,8 +36,7 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
 ThreadedAudioSampler::ThreadedAudioSampler(SamplingTriggerTimer& sampling_trigger_timer, EventTracer& event_tracer) :
     sampling_trigger_timer(sampling_trigger_timer),
     event_tracer{event_tracer},
-    audio_sampler_events{xEventGroupCreate()},
-    worker{"AudioSampler", 1536, osPriorityNormal}
+    audio_sampler_events{xEventGroupCreate()}
 {
     if (singleton_pointer != nullptr)
         throw Error{"Only one instance can be run at a time!"};
@@ -46,10 +44,14 @@ ThreadedAudioSampler::ThreadedAudioSampler(SamplingTriggerTimer& sampling_trigge
     singleton_pointer = this;
 
     MX_ADC1_Init();
+
+    start();
 }
 
 ThreadedAudioSampler::~ThreadedAudioSampler()
 {
+    stop();
+
     LL_ADC_DeInit(ADC1);
 
     vEventGroupDelete(audio_sampler_events);
@@ -57,17 +59,10 @@ ThreadedAudioSampler::~ThreadedAudioSampler()
     singleton_pointer = nullptr;
 }
 
-void ThreadedAudioSampler::set_on_batch_of_samples_received_handler(Handler handler)
-{
-    on_samples_received_handler = std::move(handler);
-}
-
 void ThreadedAudioSampler::start()
 {
     if (is_started)
         return;
-
-    worker.start([this]() { this->thread_code(); });
 
     configure_dma();
     calibrate_adc();
@@ -83,21 +78,10 @@ void ThreadedAudioSampler::stop()
     if (!is_started)
         return;
 
-    auto quit_running_thread{[this]() {
-        xEventGroupSetBits(this->audio_sampler_events, to_underlying(ThreadedAudioSamplerEvent::quit));
-    }};
-
-    auto wait_for_thread_to_finish{[this]() {
-        worker.join();
-    }};
-
     sampling_trigger_timer.stop();
 
     disable_adc();
     disable_dma();
-
-    quit_running_thread();
-    wait_for_thread_to_finish();
 
     is_started = false;
 }
@@ -231,7 +215,7 @@ extern "C" void DMA1_Channel1_IRQHandler(void)
                        or higher_priority_task_woken_during_full_transfer);
 }
 
-void ThreadedAudioSampler::thread_code()
+ThreadedAudioSampler::BatchOfSamples ThreadedAudioSampler::await_samples()
 {
     auto wait_for_any_event{[this]() {
         auto do_clear_event_bits_on_exit{pdTRUE};
@@ -248,35 +232,28 @@ void ThreadedAudioSampler::thread_code()
         return (event_bits & to_underlying(event)) != 0;
     }};
 
-    auto convert_samples_and_call_sample_batch_handler{[this](auto raw_samples_begin, auto raw_samples_end) {
+    auto convert_samples{[](auto raw_samples_begin, auto raw_samples_end) {
         // TODO: We might copy the raw_samples_* range before handling, to prevent from races.
         AudioChainConfig::BatchOfSamples samples;
         std::ranges::transform(raw_samples_begin, raw_samples_end, std::begin(samples), convert_sample);
-        if (this->on_samples_received_handler)
-            this->on_samples_received_handler(std::move(samples));
+        return samples;
     }};
 
-    while (true)
+    auto event{wait_for_any_event()};
+    event_tracer.capture("ThreadedAudioSampler: begin");
+    if (is_event(event, ThreadedAudioSamplerEvent::half_transfer))
     {
-        auto event{wait_for_any_event()};
-        event_tracer.capture("ThreadedAudioSampler: begin");
-        if (is_event(event, ThreadedAudioSamplerEvent::half_transfer))
-        {
-            auto begin{std::cbegin(raw_sample_buffer)};
-            auto end{raw_sample_buffer_half_indicator};
-            convert_samples_and_call_sample_batch_handler(begin, end);
-        }
-        if (is_event(event, ThreadedAudioSamplerEvent::full_transfer))
-        {
-            auto begin{raw_sample_buffer_half_indicator};
-            auto end{std::cend(raw_sample_buffer)};
-            convert_samples_and_call_sample_batch_handler(begin, end);
-        }
-        if (is_event(event, ThreadedAudioSamplerEvent::quit))
-        {
-            break;
-        }
-        event_tracer.capture("ThreadedAudioSampler: end");
+        auto begin{std::cbegin(raw_sample_buffer)};
+        auto end{raw_sample_buffer_half_indicator};
+        return convert_samples(begin, end);
+    } else if (is_event(event, ThreadedAudioSamplerEvent::full_transfer))
+    {
+        auto begin{raw_sample_buffer_half_indicator};
+        auto end{std::cend(raw_sample_buffer)};
+        return convert_samples(begin, end);
+    } else
+    {
+        throw Error{"Unknown event while awaiting samples."};
     }
 }
 

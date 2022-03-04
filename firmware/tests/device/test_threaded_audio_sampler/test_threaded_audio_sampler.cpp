@@ -6,17 +6,14 @@
 
 #include <chrono>
 
+#include "benchmark_timer.hpp"
+#include "dummy_event_tracer.hpp"
 #include "os_waiters.hpp"
+#include "sampling_trigger_timer_impl.hpp"
+#include "serial_logger.hpp"
 #include "threaded_audio_sampler.hpp"
 
-#include "jungles_os_helpers/freertos/flag.hpp"
-#include "serial_logger.hpp"
-
-#include "dummy_event_tracer.hpp"
-
 #include "unity.h"
-
-#include "sampling_trigger_timer_impl.hpp"
 
 using namespace std::chrono_literals;
 
@@ -27,7 +24,8 @@ using namespace std::chrono_literals;
 void test_single_batch_of_samples_is_obtained();
 void test_multiple_instances_can_be_run_one_after_another();
 void test_proper_number_of_samples_is_collected_within_specific_period();
-void test_cant_create_two_instances();
+void test_not_collecting_samples_doesnt_crash_the_app();
+void test_large_time_gap_in_collecting_doesnt_crash_the_app();
 /** @} */ // End of group ThreadedAudioSamplerTests
 
 // =====================================================================================================================
@@ -36,82 +34,80 @@ void test_cant_create_two_instances();
 
 void test_single_batch_of_samples_is_obtained()
 {
-    jungles::freertos::flag samples_received_flag;
-
     SamplingTriggerTimerImpl sampling_trigger_timer;
     DummyEventTracer event_tracer;
     ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
-    sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
-    sampler.start();
-
-    samples_received_flag.wait();
-    sampler.stop();
-
-    // TODO: Refactor tests in such a way that we assert for something specific, e.g. wait() has timeout.
-    TEST_ASSERT_TRUE(true);
+    auto samples{sampler.await_samples()};
+    // TODO: accidentally it might be true, so make it more accident-proof.
+    TEST_ASSERT(samples[0] != 0.0);
 }
 
 void test_multiple_instances_can_be_run_one_after_another()
 {
-    {
-        jungles::freertos::flag samples_received_flag;
-        SamplingTriggerTimerImpl sampling_trigger_timer;
-        DummyEventTracer event_tracer;
-        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
-        sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
-        sampler.start();
-        samples_received_flag.wait();
-        sampler.stop();
-    }
-
-    os::wait(300ms);
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    DummyEventTracer event_tracer;
 
     {
-        jungles::freertos::flag samples_received_flag;
-        SamplingTriggerTimerImpl sampling_trigger_timer;
-        DummyEventTracer event_tracer;
         ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
-        sampler.set_on_batch_of_samples_received_handler([&](auto) { samples_received_flag.set(); });
-        sampler.start();
-        samples_received_flag.wait();
-        sampler.stop();
+        auto samples{sampler.await_samples()};
+        TEST_ASSERT(samples[0] != 0.0);
     }
 
-    TEST_ASSERT_TRUE(true);
+    {
+        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+        auto samples{sampler.await_samples()};
+        TEST_ASSERT(samples[0] != 0.0);
+    }
 }
 
 void test_proper_number_of_samples_is_collected_within_specific_period()
 {
-    jungles::freertos::flag samples_received_flag;
-
-    unsigned samples_received{0};
-
-    SamplingTriggerTimerImpl sampling_trigger_timer;
-    DummyEventTracer event_tracer;
-    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
-    sampler.set_on_batch_of_samples_received_handler([&](auto samples) { samples_received += samples.size(); });
-    sampler.start();
-
-    os::wait(1s);
-    sampler.stop();
-
-    unsigned samples_received_after_one_second{samples_received};
-
-    TEST_ASSERT_UINT_WITHIN(100, 44100, samples_received_after_one_second);
-}
-
-void test_cant_create_two_instances()
-{
-    bool is_failed{false};
-    try
+    unsigned duration_us{0};
     {
         SamplingTriggerTimerImpl sampling_trigger_timer;
         DummyEventTracer event_tracer;
         ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
-        ThreadedAudioSampler{sampling_trigger_timer, event_tracer};
-    } catch (const ThreadedAudioSampler::Error&)
-    {
-        is_failed = true;
+
+        constexpr unsigned sampling_frequency_hz{44100};
+        unsigned number_of_batches_within_one_second{sampling_frequency_hz / AudioChainConfig::WindowSize};
+
+        BenchmarkTimer timer;
+        auto start_us{timer.time_microseconds()};
+        for (unsigned i{0}; i < number_of_batches_within_one_second; ++i)
+            sampler.await_samples();
+        auto end_us{timer.time_microseconds()};
+
+        duration_us = end_us - start_us;
     }
-    TEST_ASSERT_TRUE(is_failed);
+    TEST_ASSERT_UINT_WITHIN(20000, 1000000, duration_us);
+}
+
+void test_not_collecting_samples_doesnt_crash_the_app()
+{
+    {
+        SamplingTriggerTimerImpl sampling_trigger_timer;
+        DummyEventTracer event_tracer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+        os::wait_milliseconds(200);
+    }
+    TEST_ASSERT(true);
+}
+
+void test_large_time_gap_in_collecting_doesnt_crash_the_app()
+{
+    {
+        SamplingTriggerTimerImpl sampling_trigger_timer;
+        DummyEventTracer event_tracer;
+        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+
+        sampler.await_samples();
+        sampler.await_samples();
+        os::wait_milliseconds(200);
+        sampler.await_samples();
+        sampler.await_samples();
+        sampler.await_samples();
+        sampler.await_samples();
+
+    }
+    TEST_ASSERT(true);
 }

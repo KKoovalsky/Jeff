@@ -30,9 +30,9 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     explicit ThreadedAudioSampler(SamplingTriggerTimer&, EventTracer&);
     ~ThreadedAudioSampler() override;
 
-    void set_on_batch_of_samples_received_handler(Handler) override;
-    void start() override;
-    void stop() override;
+    using BatchOfSamples = AudioChainConfig::BatchOfSamples;
+
+    BatchOfSamples await_samples() override;
 
     class Error : public AudioSamplerInterface::Error
     {
@@ -46,6 +46,8 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     };
 
   private:
+    void start();
+    void stop();
     void configure_dma();
     static void disable_dma();
     static void calibrate_adc();
@@ -53,7 +55,6 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     static void disable_adc();
 
     static float convert_sample(uint16_t raw_sample);
-    void thread_code();
 
     static inline ThreadedAudioSampler* singleton_pointer{nullptr};
 
@@ -69,13 +70,9 @@ class ThreadedAudioSampler : public AudioSamplerInterface
     const RawSampleIterator raw_sample_buffer_half_indicator{
         std::next(std::begin(raw_sample_buffer), RawSampleBufferSize / 2)};
 
-    Handler on_samples_received_handler;
     bool is_started{false};
 
     EventGroupHandle_t audio_sampler_events;
-
-    using Thread = jungles::freertos::thread;
-    Thread worker;
 
     friend void DMA1_Channel1_IRQHandler();
 };
