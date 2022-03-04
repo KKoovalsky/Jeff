@@ -35,12 +35,12 @@ struct BatchOfSamplesTemplate
 
     constexpr value_type& operator[](unsigned index)
     {
-        return *pointer_to_batch[index];
+        return (*pointer_to_batch)[index];
     }
 
     constexpr const value_type& operator[](unsigned index) const
     {
-        return *pointer_to_batch[index];
+        return (*pointer_to_batch)[index];
     }
 
     constexpr auto begin() noexcept
