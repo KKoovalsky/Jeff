@@ -4,20 +4,15 @@
  * @author      Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include <array>
-#include <chrono>
-#include <iostream>
-#include <mutex>
-#include <thread>
+#include <string>
+#include <vector>
 
 #include "audio_chain.hpp"
 #include "dummy_event_tracer.hpp"
-#include "jungles_os_helpers/native/flag.hpp"
 
-static inline constexpr unsigned AudioBufferSize{64};
-using AudioBuffer = std::array<unsigned char, AudioBufferSize>;
-using BatchOfSamples = AudioBuffer;
+using BatchOfSamples = std::string;
 
 struct AudioSamplerMock : AudioSampler<BatchOfSamples>
 {
@@ -58,9 +53,6 @@ struct AudioDacMock : AudioDac<BatchOfSamples>
 
 TEST_CASE("AudioChain applies effect to samples and forwards it to DAC", "[audio_chain]")
 {
-    using Flag = jungles::flag;
-    using namespace std::chrono_literals;
-
     AudioSamplerMock audio_sampler;
     GuitarEffectMock guitar_effect;
     AudioDacMock audio_dac;
@@ -70,75 +62,23 @@ TEST_CASE("AudioChain applies effect to samples and forwards it to DAC", "[audio
         return AudioChain{audio_sampler, guitar_effect, audio_dac, event_tracer};
     }};
 
-    SECTION("AudioChain asks the AudioSampler for samples")
-    {
-        auto audio_chain{make_audio_chain_under_test()};
-        Flag audio_sampler_asked_for_samples_flag;
-
-        audio_sampler.samples_collected_handler = [&]() {
-            audio_sampler_asked_for_samples_flag.set();
-            return BatchOfSamples{};
-        };
-
-        std::thread t{[&]() {
-            audio_chain.run();
-        }};
-
-        REQUIRE(audio_sampler_asked_for_samples_flag.wait_for(1s));
-
-        audio_chain.stop();
-        t.join();
-    }
-
-    SECTION("AudioChain asks the AudioSampler continuously for samples")
-    {
-        auto audio_chain{make_audio_chain_under_test()};
-        Flag audio_sampler_asked_multiple_times_for_samples_flag;
-
-        audio_sampler.samples_collected_handler = [&, called_times = 0]() mutable {
-            ++called_times;
-            if (called_times > 10)
-                audio_sampler_asked_multiple_times_for_samples_flag.set();
-            return BatchOfSamples{};
-        };
-
-        std::thread t{[&]() {
-            audio_chain.run();
-        }};
-
-        REQUIRE(audio_sampler_asked_multiple_times_for_samples_flag.wait_for(1s));
-
-        audio_chain.stop();
-        t.join();
-    }
-
     SECTION("Collected samples are mutated by the guitar effect")
     {
         auto audio_chain{make_audio_chain_under_test()};
 
         audio_sampler.samples_collected_handler = []() {
-            BatchOfSamples samples;
-            samples[0] = 0x0A;
-            samples[1] = 0xBC;
-            return samples;
+            return "Samples from the AudioSampler";
         };
 
-        Flag is_samples_mutated_flag;
-
+        std::string result;
         guitar_effect.effect_applier = [&](auto samples) {
-            if (samples[0] == 0x0A and samples[1] == 0xBC)
-                is_samples_mutated_flag.set();
+            result = samples;
             return samples;
         };
 
-        std::thread t{[&]() {
-            audio_chain.run();
-        }};
+        audio_chain.run_once();
 
-        REQUIRE(is_samples_mutated_flag.wait_for(1s));
-
-        audio_chain.stop();
-        t.join();
+        REQUIRE(result == "Samples from the AudioSampler");
     }
 
     SECTION("Forwards mutated samples to DAC")
@@ -146,26 +86,43 @@ TEST_CASE("AudioChain applies effect to samples and forwards it to DAC", "[audio
         auto audio_chain{make_audio_chain_under_test()};
 
         guitar_effect.effect_applier = [&](auto) {
-            BatchOfSamples samples;
-            samples[0] = 0x37;
-            samples[1] = 0xB6;
-            return samples;
+            return "Samples from the GuitarEffect";
         };
 
-        Flag is_mutated_samples_forwarded_to_audio_dac_flag;
-
+        std::string result;
         audio_dac.stream_updater = [&](auto samples) {
-            if (samples[0] == 0x37 and samples[1] == 0xB6)
-                is_mutated_samples_forwarded_to_audio_dac_flag.set();
+            result = samples;
         };
 
-        std::thread t{[&]() {
-            audio_chain.run();
+        audio_chain.run_once();
+
+        REQUIRE(result == "Samples from the GuitarEffect");
+    }
+
+    SECTION("Maintains the signal chain continuously")
+    {
+        auto audio_chain{make_audio_chain_under_test()};
+
+        audio_sampler.samples_collected_handler = [ordinal_number = 0]() mutable {
+            return std::to_string(ordinal_number++);
+        };
+
+        auto sample_forwarder{[](auto samples) {
+            return samples;
         }};
 
-        REQUIRE(is_mutated_samples_forwarded_to_audio_dac_flag.wait_for(1s));
+        guitar_effect.effect_applier = sample_forwarder;
 
-        audio_chain.stop();
-        t.join();
+        std::vector<std::string> samples_captured_by_dac;
+        audio_dac.stream_updater = [&](auto samples) {
+            samples_captured_by_dac.push_back(samples);
+        };
+
+        audio_chain.run_once();
+        audio_chain.run_once();
+        audio_chain.run_once();
+        audio_chain.run_once();
+
+        REQUIRE_THAT(samples_captured_by_dac, Catch::Matchers::Equals(std::vector<std::string>{"0", "1", "2", "3"}));
     }
 }

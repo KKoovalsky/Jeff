@@ -11,11 +11,6 @@
 #include "event_tracer.hpp"
 #include "guitar_effect.hpp"
 
-#include <atomic>
-#include <concepts>
-
-#include <iostream>
-
 template<typename BatchOfSamples>
 class AudioChain
 {
@@ -28,29 +23,15 @@ class AudioChain
     {
     }
 
-    void run()
+    void run_once()
     {
-        while (!is_stopped)
-        {
-            event_tracer.capture("AudioChain: AudioSampler begin");
-            auto new_batch_of_samples{audio_sampler.await_samples()};
-            event_tracer.capture("AudioChain: AudioSampler end, GuitarEffect begin");
-            auto mutated_samples{guitar_effect.apply(std::move(new_batch_of_samples))};
-            event_tracer.capture("AudioChain: GuitarEffect end, AudioDac begin");
-            audio_dac.await_stream_update(std::move(mutated_samples));
-            event_tracer.capture("AudioChain: AudioDac end");
-        }
-    }
-
-    void stop()
-    {
-        is_stopped = true;
-    }
-
-    ~AudioChain()
-    {
-        audio_dac.stop();
-        audio_sampler.stop();
+        event_tracer.capture("AudioChain: AudioSampler begin");
+        auto new_batch_of_samples{audio_sampler.await_samples()};
+        event_tracer.capture("AudioChain: AudioSampler end, GuitarEffect begin");
+        auto mutated_samples{guitar_effect.apply(std::move(new_batch_of_samples))};
+        event_tracer.capture("AudioChain: GuitarEffect end, AudioDac begin");
+        audio_dac.await_stream_update(std::move(mutated_samples));
+        event_tracer.capture("AudioChain: AudioDac end");
     }
 
   private:
@@ -58,8 +39,6 @@ class AudioChain
     GuitarEffect<BatchOfSamples>& guitar_effect;
     AudioDac<BatchOfSamples>& audio_dac;
     EventTracer& event_tracer;
-
-    std::atomic_bool is_stopped{false};
 };
 
 #endif /* AUDIO_CHAIN_HPP */
