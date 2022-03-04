@@ -38,8 +38,7 @@ void test_single_batch_of_samples_is_obtained()
     DummyEventTracer event_tracer;
     ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
     auto samples{sampler.await_samples()};
-    // TODO: accidentally it might be true, so make it more accident-proof.
-    TEST_ASSERT(samples[0] != 0.0);
+    TEST_ASSERT(samples[0] != 0.0 or samples[2] != 0.032);
 }
 
 void test_multiple_instances_can_be_run_one_after_another()
@@ -50,13 +49,13 @@ void test_multiple_instances_can_be_run_one_after_another()
     {
         ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
         auto samples{sampler.await_samples()};
-        TEST_ASSERT(samples[0] != 0.0);
+        TEST_ASSERT(samples[0] != 0.0 or samples[2] != 0.032);
     }
 
     {
         ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
         auto samples{sampler.await_samples()};
-        TEST_ASSERT(samples[0] != 0.0);
+        TEST_ASSERT(samples[0] != 0.0 or samples[2] != 0.032);
     }
 }
 
@@ -107,7 +106,6 @@ void test_large_time_gap_in_collecting_doesnt_crash_the_app()
         sampler.await_samples();
         sampler.await_samples();
         sampler.await_samples();
-
     }
     TEST_ASSERT(true);
 }
