@@ -61,51 +61,45 @@ void test_multiple_instances_can_be_run_one_after_another()
 
 void test_proper_number_of_samples_is_collected_within_specific_period()
 {
-    unsigned duration_us{0};
-    {
-        SamplingTriggerTimerImpl sampling_trigger_timer;
-        DummyEventTracer event_tracer;
-        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    DummyEventTracer event_tracer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
 
-        constexpr unsigned sampling_frequency_hz{44100};
-        unsigned number_of_batches_within_one_second{sampling_frequency_hz / AudioChainConfig::WindowSize};
+    constexpr unsigned sampling_frequency_hz{44100};
+    unsigned number_of_batches_within_one_second{sampling_frequency_hz / AudioChainConfig::WindowSize};
 
-        BenchmarkTimer timer;
-        auto start_us{timer.time_microseconds()};
-        for (unsigned i{0}; i < number_of_batches_within_one_second; ++i)
-            sampler.await_samples();
-        auto end_us{timer.time_microseconds()};
+    BenchmarkTimer timer;
+    auto start_us{timer.time_microseconds()};
+    for (unsigned i{0}; i < number_of_batches_within_one_second; ++i)
+        sampler.await_samples();
+    auto end_us{timer.time_microseconds()};
 
-        duration_us = end_us - start_us;
-    }
+    auto duration_us{end_us - start_us};
     TEST_ASSERT_UINT_WITHIN(20000, 1000000, duration_us);
 }
 
 void test_not_collecting_samples_doesnt_crash_the_app()
 {
-    {
-        SamplingTriggerTimerImpl sampling_trigger_timer;
-        DummyEventTracer event_tracer;
-        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
-        os::wait_milliseconds(200);
-    }
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    DummyEventTracer event_tracer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+    os::wait_milliseconds(200);
     TEST_ASSERT(true);
 }
 
 void test_large_time_gap_in_collecting_doesnt_crash_the_app()
 {
-    {
-        SamplingTriggerTimerImpl sampling_trigger_timer;
-        DummyEventTracer event_tracer;
-        ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+    SamplingTriggerTimerImpl sampling_trigger_timer;
+    DummyEventTracer event_tracer;
+    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
 
-        sampler.await_samples();
-        sampler.await_samples();
-        os::wait_milliseconds(200);
-        sampler.await_samples();
-        sampler.await_samples();
-        sampler.await_samples();
-        sampler.await_samples();
-    }
+    sampler.await_samples();
+    sampler.await_samples();
+    os::wait_milliseconds(200);
+    sampler.await_samples();
+    sampler.await_samples();
+    sampler.await_samples();
+    sampler.await_samples();
+
     TEST_ASSERT(true);
 }
