@@ -278,7 +278,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
     }
 }
 
-TEST_CASE("Basic windowed distortion with memory benchmark", "[distortion][!benchmark]")
+TEST_CASE("Basic windowed distortion with memory benchmark", "[.][distortion_benchmark][!benchmark]")
 {
     static constexpr unsigned WindowSize{64};
     static constexpr float threshold{0.7};
