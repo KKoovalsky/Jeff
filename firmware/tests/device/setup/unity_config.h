@@ -20,4 +20,6 @@ void unity_putchar(int c);
         UNITY_OUTPUT_CHAR('\n'); \
     } while (0)
 
+#define UNITY_EXCLUDE_SETJMP_H
+
 #endif /* UNITY_CONFIG_H */
