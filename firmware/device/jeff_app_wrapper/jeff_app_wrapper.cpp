@@ -6,14 +6,11 @@
 
 #include "jeff_app_wrapper.hpp"
 #include "filter_cutoff_setter_clock.hpp"
-#include "os_waiters.hpp"
 #include "sampling_trigger_timer_impl.hpp"
 #include "threaded_audio_dac.hpp"
 #include "threaded_audio_sampler.hpp"
 
 #include "audio_chain.hpp"
-
-#include "jungles_os_helpers/freertos/mutex.hpp"
 
 #ifdef JEFF_TRACE_AND_DUMP_EVENTS
 #include "benchmark_timer.hpp"
@@ -41,8 +38,7 @@ void JeffAppWrapper::loop()
     ThreadedAudioSampler audio_sampler{sampling_trigger_timer, event_tracer};
     ThreadedAudioDac audio_dac{sampling_trigger_timer, event_tracer};
 
-    AudioChain<jungles::freertos::mutex, AudioChainConfig::BatchOfSamples> audio_chain{
-        audio_sampler, guitar_effect, audio_dac, event_tracer};
-
-    os::loop();
+    AudioChain audio_chain{audio_sampler, guitar_effect, audio_dac, event_tracer};
+    while (true)
+        audio_chain.run_once();
 }
