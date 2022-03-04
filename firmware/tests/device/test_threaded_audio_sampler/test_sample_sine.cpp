@@ -12,8 +12,6 @@
 
 #include "unity.h"
 
-#include "jungles_os_helpers/freertos/flag.hpp"
-
 #include "arm_math.h"
 
 #include <cmath>
@@ -42,16 +40,11 @@ void assert_input_signal_matches_sine(unsigned signal_frequency_hz)
     std::vector<float> collected_samples;
     collected_samples.reserve(number_of_samples + margin);
 
-    jungles::freertos::flag collection_finished_flag;
-    sampler.set_on_batch_of_samples_received_handler([&](auto samples) {
+    while (collected_samples.size() < number_of_samples)
+    {
+        auto samples{sampler.await_samples()};
         collected_samples.insert(std::end(collected_samples), std::begin(samples), std::end(samples));
-        if (collected_samples.size() >= number_of_samples)
-            collection_finished_flag.set();
-    });
-
-    sampler.start();
-    collection_finished_flag.wait();
-    sampler.stop();
+    }
 
     assert_signal_contains_single_harmonic(collected_samples, signal_frequency_hz, sampling_frequency_hz);
 }
