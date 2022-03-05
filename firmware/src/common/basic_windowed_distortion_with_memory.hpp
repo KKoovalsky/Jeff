@@ -12,8 +12,9 @@
 #include <concepts>
 #include <functional>
 #include <iterator>
-#include <queue>
 #include <set>
+
+#include "ring_buffer.hpp"
 
 #include "batch_of_samples.hpp"
 #include "guitar_effect.hpp"
@@ -70,8 +71,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
             auto sample{*samples_it++};
             auto sample_absolute{*absolute_samples_it++};
 
-            auto old_absolute_window_begin_it{links_to_sorted_absolute_values_of_samples.front()};
-            links_to_sorted_absolute_values_of_samples.pop();
+            auto old_absolute_window_begin_it{links_to_sorted_absolute_values_of_samples.pop()};
             sorted_absolute_values_of_samples.erase(old_absolute_window_begin_it);
 
             auto new_absolute_window_end_it{sorted_absolute_values_of_samples.insert(sample_absolute)};
@@ -133,7 +133,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
     using Multiset = std::multiset<float, std::greater<float>>;
 
     Multiset sorted_absolute_values_of_samples;
-    std::queue<Multiset::iterator> links_to_sorted_absolute_values_of_samples;
+    jungles::RingBuffer<Multiset::iterator, WindowSize> links_to_sorted_absolute_values_of_samples;
 };
 
 #endif /* BASIC_WINDOWED_DISTORTION_WITH_MEMORY_HPP */
