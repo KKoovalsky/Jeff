@@ -126,6 +126,7 @@ using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
 using TestData = std::tuple<Input1, Input2, ExpectedOutput>;
 
 static const std::initializer_list<TestData> test_data{
+    // clang-format off
     {Input1{-0.1f, 0.2f, 0.7f, 0.8f}, Input2{0.3f, -0.2f, 0.7f, -0.1f}, ExpectedOutput{0.5f, -0.333333f, 0.8f, -0.166667f}},
     {Input1{0.8f, 0.7f, -0.1f, 0.55f}, Input2{0.2f, -0.2f, 0.9f, 0.7f}, ExpectedOutput{0.333333f, -0.333333f, 0.9f, 0.9f}},
     {Input1{0.8f, 0.7f, -0.1f, -0.6f}, Input2{0.38f, -0.38f, 0.9f, 0.7f}, ExpectedOutput{0.633333f, -0.6f, 0.9f, 0.9f}},
@@ -140,7 +141,7 @@ static const std::initializer_list<TestData> test_data{
     {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.3f, -0.166667f, -0.3f, -0.9f}},
     {Input1{0.1f, -0.3f, -0.1f, 0.2f}, Input2{0.2f, -0.1f, -0.3f, -0.9f}, ExpectedOutput{0.3f, -0.166667f, -0.3f, -0.9f}},
     {Input1{0.1f, 0.3f, 0.1f, -0.2f}, Input2{-0.2f, 0.1f, 0.3f, 0.9f}, ExpectedOutput{-0.3f, 0.166667f, 0.3f, 0.9f}},
-    // {Input1{}, Input2{}, ExpectedOutput{}},
+    // clang-format on
 };
 } // namespace HardClippingContinousTestData
 
@@ -272,8 +273,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             Distortion distortion{threshold};
 
             auto result{distortion.apply({0.4f, 0.3f, 0.18f, -0.2f, 0.5f, -0.1f, -0.2f, 0.6f})};
-            REQUIRE_THAT(result,
-                         EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.36f, -0.4f, 0.5f, -0.2f, -0.4f, 0.6f}));
+            REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.36f, -0.4f, 0.5f, -0.2f, -0.4f, 0.6f}));
         }
     }
 }

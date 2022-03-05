@@ -10,7 +10,10 @@
 #include <array>
 #include <cmath>
 #include <concepts>
+#include <functional>
 #include <iterator>
+#include <queue>
+#include <set>
 
 #include "batch_of_samples.hpp"
 #include "guitar_effect.hpp"
@@ -43,18 +46,14 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
   public:
     using BatchOfSamples = BatchOfSamplesTemplate<WindowSize>;
 
-  private:
-    static constexpr unsigned ComputationWindowSize{WindowSize * 2};
-    using ComputationWindow = std::array<typename BatchOfSamples::value_type, ComputationWindowSize>;
-
-  public:
     explicit BasicWindowedDistortionWithMemory(float threshold) :
         threshold{threshold}, normalization_factor{1 / threshold}
     {
         if (threshold < 0.0f)
             throw Error{"Threshold must not be negative"};
 
-        std::fill(std::begin(previous_batch_absolute_values), std::end(previous_batch_absolute_values), 0.0f);
+        for (unsigned i{0}; i < WindowSize; ++i)
+            links_to_sorted_absolute_values_of_samples.push(sorted_absolute_values_of_samples.insert(0.f));
     }
 
     BatchOfSamples apply(BatchOfSamples samples) override
@@ -62,23 +61,26 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         BatchOfSamples output_samples;
         auto current_batch_absolute_values{to_absolute(samples)};
 
-        auto computation_window{merge(previous_batch_absolute_values, current_batch_absolute_values)};
         auto output_samples_it{std::begin(output_samples)};
-        auto input_samples_it{std::begin(samples)};
+        auto samples_it{std::begin(samples)};
+        auto absolute_samples_it{std::begin(current_batch_absolute_values)};
 
-        constexpr auto first_new_sample_index{ComputationWindowSize / 2};
-        for (unsigned i{first_new_sample_index}; i < ComputationWindowSize; ++i)
+        while (samples_it != std::end(samples))
         {
-            auto window_begin_it{std::next(std::begin(computation_window), i - WindowSize + 1)};
-            auto window_end_it{std::next(std::begin(computation_window), i + 1)};
-            auto window_absolute_maximum{*MaximumFinder(window_begin_it, window_end_it)};
+            auto sample{*samples_it++};
+            auto sample_absolute{*absolute_samples_it++};
 
+            auto old_absolute_window_begin_it{links_to_sorted_absolute_values_of_samples.front()};
+            links_to_sorted_absolute_values_of_samples.pop();
+            sorted_absolute_values_of_samples.erase(old_absolute_window_begin_it);
+
+            auto new_absolute_window_end_it{sorted_absolute_values_of_samples.insert(sample_absolute)};
+            links_to_sorted_absolute_values_of_samples.push(new_absolute_window_end_it);
+
+            auto window_absolute_maximum{*sorted_absolute_values_of_samples.begin()};
             auto window_threshold{window_absolute_maximum * threshold};
-            auto input_sample{*input_samples_it++};
-            *output_samples_it++ = clamp(input_sample, window_threshold, -window_threshold);
+            *output_samples_it++ = clamp(sample, window_threshold, -window_threshold);
         }
-
-        previous_batch_absolute_values = std::move(current_batch_absolute_values);
 
         normalize(output_samples);
         return output_samples;
@@ -98,15 +100,6 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
 
         const char* message;
     };
-
-    ComputationWindow merge(const BatchOfSamples& batch1, const BatchOfSamples& batch2) const noexcept
-    {
-        ComputationWindow computation_window;
-        auto half_window_it{std::next(std::begin(computation_window), WindowSize)};
-        std::copy(std::begin(batch1), std::end(batch1), std::begin(computation_window));
-        std::copy(std::begin(batch2), std::end(batch2), half_window_it);
-        return computation_window;
-    }
 
     BatchOfSamples to_absolute(const BatchOfSamples& samples) const noexcept
     {
@@ -136,7 +129,11 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
 
     float threshold;
     float normalization_factor;
-    BatchOfSamples previous_batch_absolute_values;
+
+    using Multiset = std::multiset<float, std::greater<float>>;
+
+    Multiset sorted_absolute_values_of_samples;
+    std::queue<Multiset::iterator> links_to_sorted_absolute_values_of_samples;
 };
 
 #endif /* BASIC_WINDOWED_DISTORTION_WITH_MEMORY_HPP */
