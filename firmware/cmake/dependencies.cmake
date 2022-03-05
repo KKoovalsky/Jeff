@@ -134,3 +134,15 @@ function(ProvideRingBufferLibrary)
     target_include_directories(ring_buffer INTERFACE ${RING_BUFFER_LIB_SRC_DIR})
 
 endfunction()
+
+function(ProvideJunglesRingBufferLibrary)
+
+    include(FetchContent)
+    FetchContent_Declare(JunglesRingBuffer
+        GIT_REPOSITORY https://github.com/KKoovalsky/RingBuffer
+        GIT_TAG a5a277c8507c5b15eee68516ed1f2f3b8fa5a441
+    )
+
+    FetchContent_MakeAvailable(JunglesRingBuffer)
+
+endfunction()
