@@ -1,4 +1,4 @@
-# **J**ungles' Guitar **Eff**ect :guitar: :musical_score: :notes: 
+# **J**ungles' Guitar **Eff**ect
 
 **Jeff** is an open-source, open-hardware digital guitar effect. The major motivation is to create a platform for experimentation with DSP and audio, by having a single hardware where various effects can be flashed. Since it is open-source and open-hardware, it would be a good place to learn DSP audio by doing, and by exploring implementations of guitar effects and the hardware of the device.
 
