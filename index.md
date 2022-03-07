@@ -1,37 +1,17 @@
-## Welcome to GitHub Pages
+# **J**ungles' Guitar **Eff**ect :guitar: :musical_score: :notes: 
 
-You can use the [editor on GitHub](https://github.com/KKoovalsky/Jeff/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+**Jeff** is an open-source, open-hardware digital guitar effect. The major motivation is to create a platform for experimentation with DSP and audio, by having a single hardware where various effects can be flashed. Since it is open-source and open-hardware, it would be a good place to learn DSP audio by doing, and by exploring implementations of guitar effects and the hardware of the device.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+The project is in a prototype stage. The first minimal prototype has been constructed and tested. The first effect (and currently, the only one) is distortion. Check out the video, which explains the idea and shows how does the first prototype perform:
 
-### Markdown
+[![Jungles Guitar Effect](https://user-images.githubusercontent.com/17928698/157022853-5c786c65-ae95-44d8-a3f0-58e69e9639a8.png)](https://www.youtube.com/watch?v=SV4dHjB7GJE "Jungles Guitar Effet")
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Plans for the future:
 
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/KKoovalsky/Jeff/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+* More effects!
+* Decrease system noise.
+* Create a proper PCB.
+* Optimize hardware - use cheaper parts and more cost-effective circuits. 
+* Add correction firmware for DAC which generates step signal.
+* Add knobs, or other type of UI, e.g. touch screen.
+* Create a digital multi-effect, with multiple effects flashed onto the device, which can be chained.
