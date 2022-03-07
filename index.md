@@ -12,6 +12,6 @@ The project is in a prototype stage. The first minimal prototype has been constr
 * Decrease system noise.
 * Create a proper PCB.
 * Optimize hardware - use cheaper parts and more cost-effective circuits. 
-* Add correction firmware for DAC which generates step signal.
+* Add correction filter for DAC which generates step signal.
 * Add knobs, or other type of UI, e.g. touch screen.
 * Create a digital multi-effect, with multiple effects flashed onto the device, which can be chained.
