@@ -1,6 +1,6 @@
 # **J**ungles' Guitar **Eff**ect :guitar: :musical_score: :notes: 
 
-![Jeff Logo](docs/diagrams/jeff_logo_white_background.drawio.png)
+![Jeff Logo](docs/diagrams/jeff_logo_white_background_small.drawio.png)
 
 [Project main page](https://kkoovalsky.github.io/Jeff/)
 
