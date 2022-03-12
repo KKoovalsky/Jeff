@@ -172,6 +172,15 @@ cd build/build_host_debug
 cmake -DCMAKE_BUILD_TYPE=Debug ../../host
 ```
 
+### Benchmarks
+
+To compare time efficiency between commits or working directory and other commits, use benchmarks:
+
+```
+cd build/build_host_release
+./tests/host/jeff_host_tests [distortion_benchmark]
+```
+
 ## Debugging
 
 `gdb_multiarch` must be installed on the host machine. To debug:
