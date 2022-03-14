@@ -1,4 +1,0 @@
-add_library(threaded_audio_sampler STATIC threaded_audio_sampler.cpp)
-target_include_directories(threaded_audio_sampler PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries(threaded_audio_sampler PUBLIC jeff_common jungles::os_helpers freertos)
-target_link_libraries(threaded_audio_sampler PRIVATE cube os_utils)

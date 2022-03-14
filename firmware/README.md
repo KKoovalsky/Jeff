@@ -252,7 +252,7 @@ There is `AudioChainConfig::BatchOfSamples` type defined which defines the type 
 batch of samples. It defines the batch size as well (the window size). The window size must be a predefined config
 constant, to know in advance the buffer sizes DMA operates on.
 
-The `ThreadedAudioSampler` and `AudioDacWithDma` implement the hardware-abstracting interfaces. They operate on the DMA
+The `AudioSamplerWithDma` and `AudioDacWithDma` implement the hardware-abstracting interfaces. They operate on the DMA
 interrupts and they work in similar fashion. DMA operates on the buffer which is twice the size of the window. Then, the
 DMA raises interrupts when half of the buffer is filled and when the buffer is fully filled. The DMA fills the buffer
 continuously, the buffer is a circular (ring) buffer. The size of the DMA buffer is twice the window size, because on
@@ -261,12 +261,12 @@ overwriting of the values.
 
 ![dma_operation](docs/diagrams/dma_operation.drawio.png)
 
-For the `ThreadedAudioSampler`, on each half-piece update, the freshly updated half-piece is copied from the DMA buffer,
+For the `AudioSamplerWithDma`, on each half-piece update, the freshly updated half-piece is copied from the DMA buffer,
 the raw samples are converted according to voltage levels and offset, and such converted samples are propagated to
 the `AudioChain`.
 
 The `AudioDacWithDma` works in similar way. On each half-piece transfer end, the `AudioChain` is asked for new samples,
-which are copied to the DMA buffer (which is obviously not the same DMA buffer used by the `ThreadedAudioSampler`). The
+which are copied to the DMA buffer (which is obviously not the same DMA buffer used by the `AudioSamplerWithDma`). The
 batch is copied to the DMA buffer in such a way to overwrite the previously transferred half-piece.
 
 ## Firmware components
@@ -278,7 +278,7 @@ by firmware. This component is responsible for that.
 
 ### SamplingTriggerTimer
 
-The ADC and DAC must be in sync, thus the sampling trigger timer is used both in `ThreadedAudioSampler` and
+The ADC and DAC must be in sync, thus the sampling trigger timer is used both in `AudioSamplerWithDma` and
 `AudioDacWithDma` to trigger sampling in both components at the same time. `SamplingTriggerTimerImpl` implements
 the `SamplingTriggerTimer` interface, and it implements simple reference (start/stop) count to clock both modules.
 

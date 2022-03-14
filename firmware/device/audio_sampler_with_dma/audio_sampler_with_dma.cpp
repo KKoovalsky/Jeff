@@ -1,6 +1,6 @@
 /**
- * @file    threaded_audio_sampler.cpp
- * @brief   Implements the ThreadedAudioSampler.
+ * @file    audio_sampler_with_dma.cpp
+ * @brief   Implements the AudioSamplerWithDma.
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
@@ -12,15 +12,15 @@
 #include <string_view>
 #include <utility>
 
+#include "audio_sampler_with_dma.hpp"
 #include "os_waiters.hpp"
-#include "threaded_audio_sampler.hpp"
 
 #include "adc.h"
 
 #include "cmsis_os2.h"
 #include "jungles_os_helpers/freertos/poller.hpp"
 
-enum class ThreadedAudioSamplerEvent : EventBits_t
+enum class AudioSamplerEvent : EventBits_t
 {
     half_transfer = 0b001,
     full_transfer = 0b010,
@@ -33,7 +33,7 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-ThreadedAudioSampler::ThreadedAudioSampler(SamplingTriggerTimer& sampling_trigger_timer, EventTracer& event_tracer) :
+AudioSamplerWithDma::AudioSamplerWithDma(SamplingTriggerTimer& sampling_trigger_timer, EventTracer& event_tracer) :
     sampling_trigger_timer(sampling_trigger_timer),
     event_tracer{event_tracer},
     audio_sampler_events{xEventGroupCreate()}
@@ -48,7 +48,7 @@ ThreadedAudioSampler::ThreadedAudioSampler(SamplingTriggerTimer& sampling_trigge
     start();
 }
 
-ThreadedAudioSampler::~ThreadedAudioSampler()
+AudioSamplerWithDma::~AudioSamplerWithDma()
 {
     stop();
 
@@ -59,7 +59,7 @@ ThreadedAudioSampler::~ThreadedAudioSampler()
     singleton_pointer = nullptr;
 }
 
-void ThreadedAudioSampler::start()
+void AudioSamplerWithDma::start()
 {
     if (is_started)
         return;
@@ -73,7 +73,7 @@ void ThreadedAudioSampler::start()
     is_started = true;
 }
 
-void ThreadedAudioSampler::stop()
+void AudioSamplerWithDma::stop()
 {
     if (!is_started)
         return;
@@ -86,7 +86,7 @@ void ThreadedAudioSampler::stop()
     is_started = false;
 }
 
-void ThreadedAudioSampler::calibrate_adc()
+void AudioSamplerWithDma::calibrate_adc()
 {
     auto wait_for_calibration_to_end_or_throw_if_failure{[]() {
         auto poller{jungles::freertos::make_poller<1, 5>()};
@@ -104,7 +104,7 @@ void ThreadedAudioSampler::calibrate_adc()
     delay_before_enabling();
 }
 
-void ThreadedAudioSampler::enable_adc()
+void AudioSamplerWithDma::enable_adc()
 {
     auto wait_for_adc_to_start_or_throw_if_failure{[]() {
         auto poller{jungles::freertos::make_poller<1, 5>()};
@@ -119,7 +119,7 @@ void ThreadedAudioSampler::enable_adc()
     // TODO: handle errors from LL_ADC_IsActiveFlag_OVR(ADC1) (overrun detection).
 }
 
-float ThreadedAudioSampler::convert_sample(uint16_t raw_sample)
+float AudioSamplerWithDma::convert_sample(uint16_t raw_sample)
 {
     static constexpr unsigned reference_voltage_in_millivolts{3300};
     unsigned sample_in_millivolts{
@@ -136,7 +136,7 @@ float ThreadedAudioSampler::convert_sample(uint16_t raw_sample)
     return sample;
 }
 
-void ThreadedAudioSampler::configure_dma()
+void AudioSamplerWithDma::configure_dma()
 {
     LL_DMA_ConfigAddresses(DMA1,
                            LL_DMA_CHANNEL_1,
@@ -164,7 +164,7 @@ void ThreadedAudioSampler::configure_dma()
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
 }
 
-void ThreadedAudioSampler::disable_dma()
+void AudioSamplerWithDma::disable_dma()
 {
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_1);
     LL_DMA_DisableIT_HT(DMA1, LL_DMA_CHANNEL_1);
@@ -173,7 +173,7 @@ void ThreadedAudioSampler::disable_dma()
     LL_DMA_ClearFlag_TC1(DMA1);
 }
 
-void ThreadedAudioSampler::disable_adc()
+void AudioSamplerWithDma::disable_adc()
 {
     auto delay_before_disabling{[]() {
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -195,9 +195,9 @@ extern "C" void DMA1_Channel1_IRQHandler(void)
     {
         LL_DMA_ClearFlag_HT1(DMA1);
 
-        auto threaded_audio_sampler_events{ThreadedAudioSampler::singleton_pointer->audio_sampler_events};
-        xEventGroupSetBitsFromISR(threaded_audio_sampler_events,
-                                  to_underlying(ThreadedAudioSamplerEvent::half_transfer),
+        auto audio_sampler_with_dma_events{AudioSamplerWithDma::singleton_pointer->audio_sampler_events};
+        xEventGroupSetBitsFromISR(audio_sampler_with_dma_events,
+                                  to_underlying(AudioSamplerEvent::half_transfer),
                                   &higher_priority_task_woken_during_half_transfer);
     }
 
@@ -205,9 +205,9 @@ extern "C" void DMA1_Channel1_IRQHandler(void)
     {
         LL_DMA_ClearFlag_TC1(DMA1);
 
-        auto threaded_audio_sampler_events{ThreadedAudioSampler::singleton_pointer->audio_sampler_events};
-        xEventGroupSetBitsFromISR(threaded_audio_sampler_events,
-                                  to_underlying(ThreadedAudioSamplerEvent::full_transfer),
+        auto audio_sampler_with_dma_events{AudioSamplerWithDma::singleton_pointer->audio_sampler_events};
+        xEventGroupSetBitsFromISR(audio_sampler_with_dma_events,
+                                  to_underlying(AudioSamplerEvent::full_transfer),
                                   &higher_priority_task_woken_during_full_transfer);
     }
 
@@ -215,20 +215,20 @@ extern "C" void DMA1_Channel1_IRQHandler(void)
                        or higher_priority_task_woken_during_full_transfer);
 }
 
-ThreadedAudioSampler::BatchOfSamples ThreadedAudioSampler::await_samples()
+AudioSamplerWithDma::BatchOfSamples AudioSamplerWithDma::await_samples()
 {
     auto wait_for_any_event{[this]() {
         auto do_clear_event_bits_on_exit{pdTRUE};
         auto do_wait_for_any_bit_set{pdFALSE};
         auto do_wait_indefinitely{portMAX_DELAY};
         return xEventGroupWaitBits(this->audio_sampler_events,
-                                   to_underlying(ThreadedAudioSamplerEvent::any),
+                                   to_underlying(AudioSamplerEvent::any),
                                    do_clear_event_bits_on_exit,
                                    do_wait_for_any_bit_set,
                                    do_wait_indefinitely);
     }};
 
-    auto is_event{[](auto event_bits, ThreadedAudioSamplerEvent event) {
+    auto is_event{[](auto event_bits, AudioSamplerEvent event) {
         return (event_bits & to_underlying(event)) != 0;
     }};
 
@@ -240,13 +240,13 @@ ThreadedAudioSampler::BatchOfSamples ThreadedAudioSampler::await_samples()
     }};
 
     auto event{wait_for_any_event()};
-    event_tracer.capture("ThreadedAudioSampler: begin");
-    if (is_event(event, ThreadedAudioSamplerEvent::half_transfer))
+    event_tracer.capture("AudioSamplerWithDma: begin");
+    if (is_event(event, AudioSamplerEvent::half_transfer))
     {
         auto begin{std::cbegin(raw_sample_buffer)};
         auto end{raw_sample_buffer_half_indicator};
         return convert_samples(begin, end);
-    } else if (is_event(event, ThreadedAudioSamplerEvent::full_transfer))
+    } else if (is_event(event, AudioSamplerEvent::full_transfer))
     {
         auto begin{raw_sample_buffer_half_indicator};
         auto end{std::cend(raw_sample_buffer)};
@@ -257,16 +257,16 @@ ThreadedAudioSampler::BatchOfSamples ThreadedAudioSampler::await_samples()
     }
 }
 
-ThreadedAudioSampler::Error::Error(const char* message)
+AudioSamplerWithDma::Error::Error(const char* message)
 {
-    static constexpr std::string_view prefix{"ThreadedAudioSampler Error: "};
+    static constexpr std::string_view prefix{"AudioSamplerWithDma Error: "};
 
     exception_message.reserve(prefix.length() + std::strlen(message));
     exception_message.append(prefix);
     exception_message.append(message);
 }
 
-const char* ThreadedAudioSampler::Error::what() const noexcept
+const char* AudioSamplerWithDma::Error::what() const noexcept
 {
     return exception_message.c_str();
 }

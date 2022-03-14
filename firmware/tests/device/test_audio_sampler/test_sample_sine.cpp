@@ -4,9 +4,9 @@
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
+#include "audio_sampler_with_dma.hpp"
 #include "sampling_trigger_timer_impl.hpp"
 #include "serial_logger.hpp"
-#include "threaded_audio_sampler.hpp"
 
 #include "dummy_event_tracer.hpp"
 
@@ -36,7 +36,7 @@ void assert_input_signal_matches_sine(unsigned signal_frequency_hz)
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
     DummyEventTracer event_tracer;
-    ThreadedAudioSampler sampler{sampling_trigger_timer, event_tracer};
+    AudioSamplerWithDma sampler{sampling_trigger_timer, event_tracer};
     std::vector<float> collected_samples;
     collected_samples.reserve(number_of_samples + margin);
 

@@ -6,9 +6,9 @@
 
 #include "jeff_app_wrapper.hpp"
 #include "audio_dac_with_dma.hpp"
+#include "audio_sampler_with_dma.hpp"
 #include "filter_cutoff_setter_clock.hpp"
 #include "sampling_trigger_timer_impl.hpp"
-#include "threaded_audio_sampler.hpp"
 
 #include "audio_chain.hpp"
 
@@ -35,7 +35,7 @@ void JeffAppWrapper::loop()
 #endif /* JEFF_TRACE_AND_DUMP_EVENTS */
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
-    ThreadedAudioSampler audio_sampler{sampling_trigger_timer, event_tracer};
+    AudioSamplerWithDma audio_sampler{sampling_trigger_timer, event_tracer};
     AudioDacWithDma audio_dac{sampling_trigger_timer, event_tracer};
 
     AudioChain audio_chain{audio_sampler, guitar_effect, audio_dac, event_tracer};

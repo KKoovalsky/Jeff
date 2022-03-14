@@ -1,6 +1,6 @@
 /**
- * @file        threaded_audio_sampler.hpp
- * @brief       Implements ThreadedAudioSampler with STM32 LL library and using a thread.
+ * @file        audio_sampler_with_dma.hpp
+ * @brief       Implements AudioSamplerWithDma with STM32 LL library and using a thread.
  * @author      Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 #ifndef THREADED_AUDIO_SAMPLER_HPP
@@ -24,11 +24,11 @@ extern "C" void DMA1_Channel1_IRQHandler();
 
 using AudioSamplerInterface = AudioSampler<AudioChainConfig::BatchOfSamples>;
 
-class ThreadedAudioSampler : public AudioSamplerInterface
+class AudioSamplerWithDma : public AudioSamplerInterface
 {
   public:
-    explicit ThreadedAudioSampler(SamplingTriggerTimer&, EventTracer&);
-    ~ThreadedAudioSampler() override;
+    explicit AudioSamplerWithDma(SamplingTriggerTimer&, EventTracer&);
+    ~AudioSamplerWithDma() override;
 
     using BatchOfSamples = AudioChainConfig::BatchOfSamples;
 
@@ -56,7 +56,7 @@ class ThreadedAudioSampler : public AudioSamplerInterface
 
     static float convert_sample(uint16_t raw_sample);
 
-    static inline ThreadedAudioSampler* singleton_pointer{nullptr};
+    static inline AudioSamplerWithDma* singleton_pointer{nullptr};
 
     SamplingTriggerTimer& sampling_trigger_timer;
     EventTracer& event_tracer;
