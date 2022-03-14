@@ -81,7 +81,7 @@ CTest module is used to run the tests. One can use `--verbose` flag to see more 
 Basic tests, which check the basic module operation (without signal generations checks) can be run with:
 
 ```
-ctest -R test_threaded_audio_sampler
+ctest -R test_audio_sampler_basic
 ```
 
 To see whether sampling works properly, connect function generator to the input circuit. You can connect it before the
