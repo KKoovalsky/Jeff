@@ -35,12 +35,12 @@ void test_two_instances_work_one_after_another()
     SamplingTriggerTimerImpl sampling_trigger_timer;
     DummyEventTracer event_tracer;
     {
-        ThreadedAudioDac dac{sampling_trigger_timer, event_tracer};
+        AudioDacWithDma dac{sampling_trigger_timer, event_tracer};
         os::wait(100ms);
     }
 
     {
-        ThreadedAudioDac dac{sampling_trigger_timer, event_tracer};
+        AudioDacWithDma dac{sampling_trigger_timer, event_tracer};
         os::wait(100ms);
     }
 
@@ -52,7 +52,7 @@ void test_single_batch_is_streamed()
     SamplingTriggerTimerImpl sampling_trigger_timer;
     DummyEventTracer event_tracer;
 
-    ThreadedAudioDac dac{sampling_trigger_timer, event_tracer};
+    AudioDacWithDma dac{sampling_trigger_timer, event_tracer};
     dac.await_stream_update(AudioChainConfig::BatchOfSamples{});
 
     TEST_ASSERT(true);
@@ -66,7 +66,7 @@ void test_multiple_batches_are_streamed()
     constexpr unsigned sampling_frequency_hz{44100};
     unsigned number_of_batches_within_one_second{sampling_frequency_hz / AudioChainConfig::WindowSize};
 
-    ThreadedAudioDac dac{sampling_trigger_timer, event_tracer};
+    AudioDacWithDma dac{sampling_trigger_timer, event_tracer};
 
     BenchmarkTimer timer;
     auto start_us{timer.time_microseconds()};

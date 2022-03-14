@@ -1,6 +1,6 @@
 /**
  * @file    threaded_audio_dac.cpp
- * @brief   Implements the ThreadedAudioDac.
+ * @brief   Implements the AudioDacWithDma.
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
@@ -25,7 +25,7 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-ThreadedAudioDac::ThreadedAudioDac(SamplingTriggerTimer& t, EventTracer& et) :
+AudioDacWithDma::AudioDacWithDma(SamplingTriggerTimer& t, EventTracer& et) :
     sampling_trigger_timer{t}, event_tracer{et}, event_group_handle{xEventGroupCreate()}
 {
     singleton_pointer = this;
@@ -34,7 +34,7 @@ ThreadedAudioDac::ThreadedAudioDac(SamplingTriggerTimer& t, EventTracer& et) :
     start();
 }
 
-ThreadedAudioDac::~ThreadedAudioDac()
+AudioDacWithDma::~AudioDacWithDma()
 {
     stop();
 
@@ -44,21 +44,21 @@ ThreadedAudioDac::~ThreadedAudioDac()
     singleton_pointer = nullptr;
 }
 
-void ThreadedAudioDac::start()
+void AudioDacWithDma::start()
 {
     configure_dma();
     enable_dac();
     sampling_trigger_timer.start();
 }
 
-void ThreadedAudioDac::stop()
+void AudioDacWithDma::stop()
 {
     disable_dac();
     disable_dma();
     sampling_trigger_timer.stop();
 }
 
-void ThreadedAudioDac::configure_dma()
+void AudioDacWithDma::configure_dma()
 {
     LL_DMA_ConfigAddresses(DMA1,
                            LL_DMA_CHANNEL_3,
@@ -81,7 +81,7 @@ void ThreadedAudioDac::configure_dma()
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
 }
 
-void ThreadedAudioDac::enable_dac()
+void AudioDacWithDma::enable_dac()
 {
     auto wait_for_dac_to_settle{[]() {
         os::wait_milliseconds(1);
@@ -93,7 +93,7 @@ void ThreadedAudioDac::enable_dac()
     LL_DAC_EnableDMAReq(DAC1, LL_DAC_CHANNEL_1);
 }
 
-void ThreadedAudioDac::disable_dma()
+void AudioDacWithDma::disable_dma()
 {
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_3);
     LL_DMA_DisableIT_HT(DMA1, LL_DMA_CHANNEL_3);
@@ -102,13 +102,13 @@ void ThreadedAudioDac::disable_dma()
     LL_DMA_ClearFlag_TC3(DMA1);
 }
 
-void ThreadedAudioDac::disable_dac()
+void AudioDacWithDma::disable_dac()
 {
     LL_DAC_DisableTrigger(DAC1, LL_DAC_CHANNEL_1);
     LL_DAC_Disable(DAC1, LL_DAC_CHANNEL_1);
 }
 
-uint16_t ThreadedAudioDac::convert_sample(float sample)
+uint16_t AudioDacWithDma::convert_sample(float sample)
 {
     static constexpr unsigned max_dac_value{__LL_DAC_DIGITAL_SCALE(LL_DAC_RESOLUTION_12B)};
 
@@ -127,7 +127,7 @@ extern "C" void DMA1_Channel3_IRQHandler(void)
     {
         LL_DMA_ClearFlag_HT3(DMA1);
 
-        auto event_group_handle{ThreadedAudioDac::singleton_pointer->event_group_handle};
+        auto event_group_handle{AudioDacWithDma::singleton_pointer->event_group_handle};
         xEventGroupSetBitsFromISR(event_group_handle,
                                   to_underlying(AudioDacEvents::half_transfer),
                                   &higher_priority_task_woken_during_half_transfer);
@@ -137,7 +137,7 @@ extern "C" void DMA1_Channel3_IRQHandler(void)
     {
         LL_DMA_ClearFlag_TC3(DMA1);
 
-        auto event_group_handle{ThreadedAudioDac::singleton_pointer->event_group_handle};
+        auto event_group_handle{AudioDacWithDma::singleton_pointer->event_group_handle};
         xEventGroupSetBitsFromISR(event_group_handle,
                                   to_underlying(AudioDacEvents::full_transfer),
                                   &higher_priority_task_woken_during_full_transfer);
@@ -147,7 +147,7 @@ extern "C" void DMA1_Channel3_IRQHandler(void)
                        or higher_priority_task_woken_during_full_transfer);
 }
 
-void ThreadedAudioDac::await_stream_update(ThreadedAudioDac::BatchOfSamples samples)
+void AudioDacWithDma::await_stream_update(AudioDacWithDma::BatchOfSamples samples)
 {
     auto wait_for_any_event{[this]() {
         auto do_clear_event_bits_on_exit{pdTRUE};
@@ -175,7 +175,7 @@ void ThreadedAudioDac::await_stream_update(ThreadedAudioDac::BatchOfSamples samp
     }};
 
     auto event{wait_for_any_event()};
-    event_tracer.capture("ThreadedAudioDac: begin");
+    event_tracer.capture("AudioDacWithDma: begin");
 
     if (is_event(event, AudioDacEvents::half_transfer))
         stream_to_first_half_of_dma_buffer(std::move(samples));

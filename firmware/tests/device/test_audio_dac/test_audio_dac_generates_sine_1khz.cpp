@@ -29,7 +29,7 @@ void test_audio_dac_generates_sine_with_1khz_frequency()
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
     DummyEventTracer event_tracer;
-    ThreadedAudioDac dac{sampling_trigger_timer, event_tracer};
+    AudioDacWithDma dac{sampling_trigger_timer, event_tracer};
 
     auto sine_generator{[]() {
         constexpr unsigned output_frequency_hz{44100};

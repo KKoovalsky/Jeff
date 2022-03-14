@@ -36,7 +36,7 @@ void JeffAppWrapper::loop()
 
     SamplingTriggerTimerImpl sampling_trigger_timer;
     ThreadedAudioSampler audio_sampler{sampling_trigger_timer, event_tracer};
-    ThreadedAudioDac audio_dac{sampling_trigger_timer, event_tracer};
+    AudioDacWithDma audio_dac{sampling_trigger_timer, event_tracer};
 
     AudioChain audio_chain{audio_sampler, guitar_effect, audio_dac, event_tracer};
     while (true)

@@ -23,11 +23,11 @@ using AudioDacInterface = AudioDac<AudioChainConfig::BatchOfSamples>;
 
 extern "C" void DMA1_Channel3_IRQHandler();
 
-class ThreadedAudioDac : public AudioDacInterface, jungles::Singleton<AudioDacInterface>
+class AudioDacWithDma : public AudioDacInterface, jungles::Singleton<AudioDacInterface>
 {
   public:
-    explicit ThreadedAudioDac(SamplingTriggerTimer&, EventTracer&);
-    ~ThreadedAudioDac() override;
+    explicit AudioDacWithDma(SamplingTriggerTimer&, EventTracer&);
+    ~AudioDacWithDma() override;
 
     using BatchOfSamples = AudioChainConfig::BatchOfSamples;
 
@@ -43,7 +43,7 @@ class ThreadedAudioDac : public AudioDacInterface, jungles::Singleton<AudioDacIn
 
     static uint16_t convert_sample(float);
 
-    static inline ThreadedAudioDac* singleton_pointer{nullptr};
+    static inline AudioDacWithDma* singleton_pointer{nullptr};
 
     static inline constexpr unsigned RawBufferSize{AudioChainConfig::WindowSize * 2};
     using RawSampleBuffer = std::array<uint16_t, RawBufferSize>;
