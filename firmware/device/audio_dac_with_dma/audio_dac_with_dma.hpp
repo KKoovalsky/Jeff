@@ -1,5 +1,5 @@
 /**
- * @file        threaded_audio_dac.hpp
+ * @file        audio_dac_with_dma.hpp
  * @brief       Defines AudioDac implementation.
  * @author      Kacper Kowalski - kacper.s.kowalski@gmail.com
  */

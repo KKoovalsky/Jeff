@@ -5,9 +5,9 @@
  */
 
 #include "jeff_app_wrapper.hpp"
+#include "audio_dac_with_dma.hpp"
 #include "filter_cutoff_setter_clock.hpp"
 #include "sampling_trigger_timer_impl.hpp"
-#include "threaded_audio_dac.hpp"
 #include "threaded_audio_sampler.hpp"
 
 #include "audio_chain.hpp"

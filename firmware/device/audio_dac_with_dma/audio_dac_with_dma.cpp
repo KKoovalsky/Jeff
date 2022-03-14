@@ -1,10 +1,10 @@
 /**
- * @file    threaded_audio_dac.cpp
+ * @file    audio_dac_with_dma.cpp
  * @brief   Implements the AudioDacWithDma.
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
-#include "threaded_audio_dac.hpp"
+#include "audio_dac_with_dma.hpp"
 #include "cmsis_os2.h"
 #include "dac.h"
 #include "os_waiters.hpp"

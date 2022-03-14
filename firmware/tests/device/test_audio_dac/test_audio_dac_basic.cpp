@@ -9,7 +9,7 @@
 #include "benchmark_timer.hpp"
 #include "os_waiters.hpp"
 #include "sampling_trigger_timer_impl.hpp"
-#include "threaded_audio_dac.hpp"
+#include "audio_dac_with_dma.hpp"
 
 #include "dummy_event_tracer.hpp"
 
