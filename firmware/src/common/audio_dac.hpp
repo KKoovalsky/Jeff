@@ -8,14 +8,16 @@
 
 #include <exception>
 #include <functional>
+#include <stdexcept>
 
 template<typename BatchOfSamples>
 struct AudioDac
 {
     virtual void await_stream_update(BatchOfSamples) = 0;
 
-    struct Error : std::exception
+    struct Error : std::runtime_error
     {
+        using std::runtime_error::runtime_error;
     };
 
     virtual ~AudioDac() = default;

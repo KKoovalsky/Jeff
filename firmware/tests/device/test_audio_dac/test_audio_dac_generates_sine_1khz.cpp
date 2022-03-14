@@ -31,9 +31,9 @@ void test_audio_dac_generates_sine_with_1khz_frequency()
     DummyEventTracer event_tracer;
     ThreadedAudioDac dac{sampling_trigger_timer, event_tracer};
 
-    constexpr unsigned output_frequency_hz{44100};
+    auto sine_generator{[]() {
+        constexpr unsigned output_frequency_hz{44100};
 
-    dac.set_on_stream_update_handler([&]() {
         namespace q = cycfi::q;
         static q::phase_iterator phase_it{q::frequency{static_cast<double>(signal_frequency_hz)}, output_frequency_hz};
 
@@ -42,10 +42,8 @@ void test_audio_dac_generates_sine_with_1khz_frequency()
             sample = q::sin(phase_it++);
 
         return samples;
-    });
-
-    dac.start();
+    }};
 
     while (true)
-        os::wait(1s);
+        dac.await_stream_update(sine_generator());
 }

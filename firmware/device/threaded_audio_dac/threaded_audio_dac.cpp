@@ -16,8 +16,7 @@ enum class AudioDacEvents : EventBits_t
 {
     half_transfer = 0b001,
     full_transfer = 0b010,
-    quit = 0b100,
-    any = 0b111
+    any = 0b011
 };
 
 template<typename Enum>
@@ -27,17 +26,18 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
 }
 
 ThreadedAudioDac::ThreadedAudioDac(SamplingTriggerTimer& t, EventTracer& et) :
-    sampling_trigger_timer{t},
-    event_tracer{et},
-    event_group_handle{xEventGroupCreate()},
-    worker("AudioDac", 1536, osPriorityNormal)
+    sampling_trigger_timer{t}, event_tracer{et}, event_group_handle{xEventGroupCreate()}
 {
     singleton_pointer = this;
     MX_DAC1_Init();
+
+    start();
 }
 
 ThreadedAudioDac::~ThreadedAudioDac()
 {
+    stop();
+
     LL_DAC_DeInit(DAC1);
 
     vEventGroupDelete(event_group_handle);
@@ -46,8 +46,6 @@ ThreadedAudioDac::~ThreadedAudioDac()
 
 void ThreadedAudioDac::start()
 {
-    worker.start([this]() { this->thread_code(); });
-
     configure_dma();
     enable_dac();
     sampling_trigger_timer.start();
@@ -55,16 +53,9 @@ void ThreadedAudioDac::start()
 
 void ThreadedAudioDac::stop()
 {
-    auto quit_running_thread{[this]() {
-        xEventGroupSetBits(this->event_group_handle, to_underlying(AudioDacEvents::quit));
-    }};
-
     disable_dac();
     disable_dma();
     sampling_trigger_timer.stop();
-
-    quit_running_thread();
-    worker.join();
 }
 
 void ThreadedAudioDac::configure_dma()
@@ -117,19 +108,6 @@ void ThreadedAudioDac::disable_dac()
     LL_DAC_Disable(DAC1, LL_DAC_CHANNEL_1);
 }
 
-void ThreadedAudioDac::set_on_stream_update_handler(Handler handler)
-{
-    stream_update_handler = std::move(handler);
-}
-
-AudioChainConfig::BatchOfSamples ThreadedAudioDac::get_new_samples()
-{
-    if (stream_update_handler)
-        return stream_update_handler();
-    else
-        return AudioChainConfig::BatchOfSamples{};
-}
-
 uint16_t ThreadedAudioDac::convert_sample(float sample)
 {
     static constexpr unsigned max_dac_value{__LL_DAC_DIGITAL_SCALE(LL_DAC_RESOLUTION_12B)};
@@ -169,7 +147,7 @@ extern "C" void DMA1_Channel3_IRQHandler(void)
                        or higher_priority_task_woken_during_full_transfer);
 }
 
-void ThreadedAudioDac::thread_code()
+void ThreadedAudioDac::await_stream_update(ThreadedAudioDac::BatchOfSamples samples)
 {
     auto wait_for_any_event{[this]() {
         auto do_clear_event_bits_on_exit{pdTRUE};
@@ -186,37 +164,23 @@ void ThreadedAudioDac::thread_code()
         return (event_bits & to_underlying(event)) != 0;
     }};
 
-    auto copy_converted_samples{[this](auto destination_begin_it) {
-        auto samples{this->get_new_samples()};
-        std::ranges::transform(std::begin(samples), std::end(samples), destination_begin_it, convert_sample);
+    auto stream_to_first_half_of_dma_buffer{[&](BatchOfSamples&& samples) {
+        std::ranges::transform(std::begin(samples), std::end(samples), std::begin(raw_sample_buffer), convert_sample);
     }};
 
-    auto copy_converted_samples_to_first_half_of_raw_buffer{[&]() {
-        copy_converted_samples(std::begin(raw_sample_buffer));
-    }};
-
-    auto copy_converted_samples_to_second_half_of_raw_buffer{[&]() {
+    auto stream_to_second_half_of_dma_buffer{[&](BatchOfSamples&& samples) {
         auto raw_sample_buffer_half_indicator{std::next(std::begin(raw_sample_buffer), RawBufferSize / 2)};
-        copy_converted_samples(raw_sample_buffer_half_indicator);
+        std::ranges::transform(
+            std::begin(samples), std::end(samples), raw_sample_buffer_half_indicator, convert_sample);
     }};
 
-    while (true)
-    {
-        auto event{wait_for_any_event()};
-        event_tracer.capture("ThreadedAudioDac: begin");
-        if (is_event(event, AudioDacEvents::half_transfer))
-            copy_converted_samples_to_first_half_of_raw_buffer();
+    auto event{wait_for_any_event()};
+    event_tracer.capture("ThreadedAudioDac: begin");
 
-        if (is_event(event, AudioDacEvents::full_transfer))
-            copy_converted_samples_to_second_half_of_raw_buffer();
-
-        if (is_event(event, AudioDacEvents::quit))
-            break;
-
-        event_tracer.capture("ThreadedAudioDac: end");
-    }
-}
-
-void ThreadedAudioDac::await_stream_update(ThreadedAudioDac::BatchOfSamples)
-{
+    if (is_event(event, AudioDacEvents::half_transfer))
+        stream_to_first_half_of_dma_buffer(std::move(samples));
+    else if (is_event(event, AudioDacEvents::full_transfer))
+        stream_to_second_half_of_dma_buffer(std::move(samples));
+    else
+        throw Error{"AudioDac: Unknown event"};
 }
