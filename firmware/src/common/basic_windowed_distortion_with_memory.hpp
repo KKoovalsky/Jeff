@@ -49,7 +49,10 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
 
   public:
     explicit BasicWindowedDistortionWithMemory(float threshold) :
-        threshold{threshold}, normalization_factor{1 / threshold}
+        threshold{threshold},
+        normalization_factor{1 / threshold},
+        window_absolute_maximum{0.0f},
+        computation_window_absolute_maximum_index{WindowSize - 1}
     {
         if (threshold < 0.0f)
             throw Error{"Threshold must not be negative"};
@@ -64,14 +67,27 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
 
         auto computation_window{merge(previous_batch_absolute_values, current_batch_absolute_values)};
         auto output_samples_it{std::begin(output_samples)};
-        auto input_samples_it{std::begin(samples)};
+        auto input_samples_it{std::cbegin(samples)};
 
         constexpr auto first_new_sample_index{ComputationWindowSize / 2};
         for (unsigned i{first_new_sample_index}; i < ComputationWindowSize; ++i)
         {
-            auto window_begin_it{std::next(std::begin(computation_window), i - WindowSize + 1)};
-            auto window_end_it{std::next(std::begin(computation_window), i + 1)};
-            auto window_absolute_maximum{*MaximumFinder(window_begin_it, window_end_it)};
+            auto window_begin_idx{i - WindowSize + 1};
+            auto absolute_sample{computation_window[i]};
+
+            if (computation_window_absolute_maximum_index < window_begin_idx)
+            {
+                auto window_begin_it{std::next(std::cbegin(computation_window), window_begin_idx)};
+                auto window_end_it{std::next(std::cbegin(computation_window), i + 1)};
+                auto window_absolute_maximum_it{MaximumFinder(window_begin_it, window_end_it)};
+                computation_window_absolute_maximum_index =
+                    std::distance(std::cbegin(computation_window), window_absolute_maximum_it);
+                window_absolute_maximum = *window_absolute_maximum_it;
+            } else if (absolute_sample > window_absolute_maximum)
+            {
+                computation_window_absolute_maximum_index = i;
+                window_absolute_maximum = absolute_sample;
+            }
 
             auto window_threshold{window_absolute_maximum * threshold};
             auto input_sample{*input_samples_it++};
@@ -79,6 +95,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
         }
 
         previous_batch_absolute_values = std::move(current_batch_absolute_values);
+        computation_window_absolute_maximum_index -= WindowSize;
 
         normalize(output_samples);
         return output_samples;
@@ -137,6 +154,9 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
     float threshold;
     float normalization_factor;
     BatchOfSamples previous_batch_absolute_values;
+
+    float window_absolute_maximum;
+    unsigned computation_window_absolute_maximum_index;
 };
 
 #endif /* BASIC_WINDOWED_DISTORTION_WITH_MEMORY_HPP */
