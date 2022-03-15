@@ -249,9 +249,11 @@ This splitting enables design which is simpler to handle.
 `AudioSampler` and `AudioDac` abstract hardware modules, `GuitarEffect` abstracts a guitar effect, which shall be
 testable on the host machine.
 
-The batch of samples is a templated type, because its type is an implementation detail. Currently, the batches are
-handled through callbacks, but it shall be refactored to make `AudioSampler` and `AudioDac` awaitable.
+The `AudioChain` forces `AudioSampler` and the `AudioDac` to be awaitable (blocking). It means that, 
+`AudioSampler::await_samples()` and `AudioDac::await_stream_update()` can only return when the whole batch has been
+evaluated.
 
+The batch of samples is a templated type, because its type is an implementation detail. 
 Samples are organized in batches, because in the end they would have to be organized in batches. Effects operate on
 windows and window is a group (batch) of samples. Moreover, we prevent from frequent context switching. In the case the
 interrupt is raised on each sample, it explodes the number of context switches. This is a typical pattern in DSP, that
