@@ -1,4 +1,13 @@
-# Jeff - **J**ungles Guitar **Eff**ect
+
+Jeff's firmware tech stack:
+
+* C++20,
+* FreeRTOS,
+* driver code generated with CubeMX, in C language,
+* CMake-based build system,
+* Python3 scripting to support the build system,
+* host-side unit-testing framework: Catch2,
+* device-side unit-testing framework: ThrowTheSwitch/Unity.
 
 # Table of Contents
 
