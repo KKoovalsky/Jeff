@@ -14,7 +14,7 @@
 #include "serial_logger.hpp"
 
 #include "audio_chain_config.hpp"
-#include "basic_windowed_distortion_with_memory.hpp"
+#include "distortion.hpp"
 
 using BatchOfSamples = AudioChainConfig::BatchOfSamples;
 using Distortion_ = Distortion<AudioChainConfig::WindowSize>;

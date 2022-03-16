@@ -12,7 +12,7 @@
 #include "catch2/matchers/catch_matchers.hpp"
 #include "catch2/matchers/catch_matchers_templated.hpp"
 
-#include "basic_windowed_distortion_with_memory.hpp"
+#include "distortion.hpp"
 #include "guitar_effect.hpp"
 
 #include <algorithm>
