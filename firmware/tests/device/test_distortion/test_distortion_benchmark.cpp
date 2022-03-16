@@ -30,6 +30,7 @@ void test_applying_distortion_is_not_too_long()
     Distortion_ distortion{0.6};
 
     auto generate_batch_of_samples{[]() {
+        // The samples compose a snapshot of 1.38 kHz sine wave.
         return BatchOfSamples{-0.333f, -0.253f, -0.165f, -0.079f, -0.004f, 0.092f,  0.179f,  0.262f,  0.328f,  0.387f,
                               0.438f,  0.468f,  0.476f,  0.456f,  0.441f,  0.404f,  0.345f,  0.265f,  0.198f,  0.122f,
                               0.028f,  -0.072f, -0.152f, -0.232f, -0.304f, -0.375f, -0.424f, -0.449f, -0.461f, -0.472f,
