@@ -1,6 +1,6 @@
 /**
  * @file    test_distortion_benchmark.cpp
- * @brief   Tests whether BasicWindowedDistortionWithMemory applies the effect within proper duration.
+ * @brief   Tests whether Distortion applies the effect within proper duration.
  * @author  Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
 
@@ -17,7 +17,7 @@
 #include "basic_windowed_distortion_with_memory.hpp"
 
 using BatchOfSamples = AudioChainConfig::BatchOfSamples;
-using Distortion = BasicWindowedDistortionWithMemory<AudioChainConfig::WindowSize>;
+using Distortion_ = Distortion<AudioChainConfig::WindowSize>;
 
 void test_applying_distortion_is_not_too_long()
 {
@@ -27,7 +27,7 @@ void test_applying_distortion_is_not_too_long()
     SerialLogger logger;
     BenchmarkTimer timer;
 
-    Distortion distortion{0.6};
+    Distortion_ distortion{0.6};
 
     auto generate_batch_of_samples{[]() {
         return BatchOfSamples{-0.333f, -0.253f, -0.165f, -0.079f, -0.004f, 0.092f,  0.179f,  0.262f,  0.328f,  0.387f,

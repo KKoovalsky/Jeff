@@ -38,7 +38,7 @@ static inline float calculate_absolute(float v)
 template<unsigned WindowSize,
          const auto& MaximumFinder = default_implementation::max_element<WindowSize>,
          const auto& AbsoluteCalculator = default_implementation::calculate_absolute>
-class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemplate<WindowSize>>
+class Distortion : public GuitarEffect<BatchOfSamplesTemplate<WindowSize>>
 {
   public:
     using BatchOfSamples = BatchOfSamplesTemplate<WindowSize>;
@@ -48,7 +48,7 @@ class BasicWindowedDistortionWithMemory : public GuitarEffect<BatchOfSamplesTemp
     using ComputationWindow = std::array<typename BatchOfSamples::value_type, ComputationWindowSize>;
 
   public:
-    explicit BasicWindowedDistortionWithMemory(float threshold) :
+    explicit Distortion(float threshold) :
         threshold{threshold},
         normalization_factor{1 / threshold},
         window_absolute_maximum{0.0f},

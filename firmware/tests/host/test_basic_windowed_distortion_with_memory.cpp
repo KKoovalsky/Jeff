@@ -70,7 +70,7 @@ static constexpr float threshold{0.7};
 using Input = std::vector<float>;
 using ExpectedOutput = std::vector<float>;
 
-using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+using DistortionUnderTest = Distortion<WindowSize>;
 
 using TestData = std::tuple<Input, ExpectedOutput>;
 
@@ -121,7 +121,7 @@ using Input1 = std::vector<float>;
 using Input2 = std::vector<float>;
 using ExpectedOutput = std::vector<float>;
 
-using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+using DistortionUnderTest = Distortion<WindowSize>;
 
 using TestData = std::tuple<Input1, Input2, ExpectedOutput>;
 
@@ -170,10 +170,10 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
     {
         using namespace HardClippingAtBeginningTestData;
 
-        Distortion distortion{threshold};
+        DistortionUnderTest distortion{threshold};
 
         const auto& [input, expected_output]{GENERATE(Catch::Generators::table<Input, ExpectedOutput>(test_data))};
-        auto input_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(input)};
+        auto input_adapted{adapt_to_guitar_effect_input<DistortionUnderTest::BatchOfSamples>(input)};
 
         auto result{distortion.apply(std::move(input_adapted))};
         REQUIRE_THAT(result, EqualsSamples(expected_output));
@@ -183,12 +183,12 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
     {
         using namespace HardClippingContinuousTestData;
 
-        Distortion distortion{threshold};
+        DistortionUnderTest distortion{threshold};
 
         const auto& [input1, input2, expected_output]{
             GENERATE(Catch::Generators::table<Input1, Input2, ExpectedOutput>(test_data))};
-        auto input1_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(input1)};
-        auto input2_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(input2)};
+        auto input1_adapted{adapt_to_guitar_effect_input<DistortionUnderTest::BatchOfSamples>(input1)};
+        auto input2_adapted{adapt_to_guitar_effect_input<DistortionUnderTest::BatchOfSamples>(input2)};
 
         distortion.apply(std::move(input1_adapted));
         auto result{distortion.apply(std::move(input2_adapted))};
@@ -200,12 +200,12 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
         static constexpr unsigned WindowSize{4};
         static constexpr float threshold{0.8};
 
-        using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
-        Distortion distortion{threshold};
+        using DistortionUnderTest = Distortion<WindowSize>;
+        DistortionUnderTest distortion{threshold};
 
-        Distortion::BatchOfSamples input1{0.4f, 0.2f, -0.2f, -0.5f};
-        Distortion::BatchOfSamples input2{0.2f, -0.2f, -0.3f, 0.5f};
-        Distortion::BatchOfSamples input3{0.4f, 0.2f, -0.1f, -0.5f};
+        DistortionUnderTest::BatchOfSamples input1{0.4f, 0.2f, -0.2f, -0.5f};
+        DistortionUnderTest::BatchOfSamples input2{0.2f, -0.2f, -0.3f, 0.5f};
+        DistortionUnderTest::BatchOfSamples input3{0.4f, 0.2f, -0.1f, -0.5f};
 
         distortion.apply(std::move(input1));
         distortion.apply(std::move(input2));
@@ -218,9 +218,9 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
         static constexpr unsigned WindowSize{4};
         static constexpr float threshold{-0.001};
 
-        using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
+        using DistortionUnderTest = Distortion<WindowSize>;
 
-        REQUIRE_THROWS_AS(Distortion{threshold}, GuitarEffect<Distortion::BatchOfSamples>::Error);
+        REQUIRE_THROWS_AS(DistortionUnderTest{threshold}, GuitarEffect<DistortionUnderTest::BatchOfSamples>::Error);
     }
 
     SECTION("Various thresholds are applied")
@@ -230,8 +230,8 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             static constexpr unsigned WindowSize{4};
             static constexpr float threshold{0.5};
 
-            using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
-            Distortion distortion{threshold};
+            using DistortionUnderTest = Distortion<WindowSize>;
+            DistortionUnderTest distortion{threshold};
 
             auto result{distortion.apply({0.4f, 0.3f, 0.18f, -0.21f})};
             REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.36f, -0.4f}));
@@ -242,8 +242,8 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             static constexpr unsigned WindowSize{4};
             static constexpr float threshold{0.1};
 
-            using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
-            Distortion distortion{threshold};
+            using DistortionUnderTest = Distortion<WindowSize>;
+            DistortionUnderTest distortion{threshold};
 
             auto result{distortion.apply({0.4f, 0.2f, 0.001f, -0.05f})};
             REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.01f, -0.4f}));
@@ -257,8 +257,8 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             static constexpr unsigned WindowSize{4};
             static constexpr float threshold{0.5};
 
-            using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
-            Distortion distortion{threshold};
+            using DistortionUnderTest = Distortion<WindowSize>;
+            DistortionUnderTest distortion{threshold};
 
             auto result{distortion.apply({0.2f, 0.3f, -0.17f, -0.21f})};
             REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.2f, 0.3f, -0.3f, -0.3f}));
@@ -269,8 +269,8 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
             static constexpr unsigned WindowSize{8};
             static constexpr float threshold{0.5};
 
-            using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
-            Distortion distortion{threshold};
+            using DistortionUnderTest = Distortion<WindowSize>;
+            DistortionUnderTest distortion{threshold};
 
             auto result{distortion.apply({0.4f, 0.3f, 0.18f, -0.2f, 0.5f, -0.1f, -0.2f, 0.6f})};
             REQUIRE_THAT(result, EqualsSamples(std::vector<float>{0.4f, 0.4f, 0.36f, -0.4f, 0.5f, -0.2f, -0.4f, 0.6f}));
@@ -283,22 +283,23 @@ TEST_CASE("Basic windowed distortion with memory benchmark", "[.][distortion_ben
     static constexpr unsigned WindowSize{64};
     static constexpr float threshold{0.7};
 
-    using Distortion = BasicWindowedDistortionWithMemory<WindowSize>;
-    Distortion distortion{threshold};
+    using DistortionUnderTest = Distortion<WindowSize>;
+    DistortionUnderTest distortion{threshold};
 
     auto random_samples{generate_random_batch_of_samples(64)};
 
     constexpr unsigned number_of_tests{10240};
 
-    std::cout << "\r\nBenchmarking BasicWindowedDistortionWithMemory for " << number_of_tests
-              << " iterations and window size: " << WindowSize << std::endl;
+    std::cout << "\r\nBenchmarking Distortion for " << number_of_tests << " iterations and window size: " << WindowSize
+              << std::endl;
 
     BENCHMARK("Applying distortion")
     {
         auto i{number_of_tests};
         while (i--)
         {
-            auto random_samples_adapted{adapt_to_guitar_effect_input<Distortion::BatchOfSamples>(random_samples)};
+            auto random_samples_adapted{
+                adapt_to_guitar_effect_input<DistortionUnderTest::BatchOfSamples>(random_samples)};
             distortion.apply(std::move(random_samples_adapted));
         }
     };
