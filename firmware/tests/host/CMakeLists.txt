@@ -5,7 +5,7 @@ function(CreateHostTests)
 
     add_executable(jeff_host_tests
         test_audio_chain.cpp
-        test_basic_windowed_distortion_with_memory.cpp
+        test_distortion.cpp
     )
     target_link_libraries(jeff_host_tests PRIVATE jeff_common Catch2::Catch2WithMain)
 

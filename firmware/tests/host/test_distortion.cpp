@@ -1,5 +1,5 @@
 /**
- * @file        test_basic_windowed_distortion_with_memory.cpp
+ * @file        test_distortion.cpp
  * @brief       Tests the basic windowed distortion with memory.
  * @author      Kacper Kowalski - kacper.s.kowalski@gmail.com
  */
@@ -164,7 +164,7 @@ static std::vector<float> generate_random_batch_of_samples(unsigned batch_size)
     return result;
 }
 
-TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
+TEST_CASE("Distortion applies hard clipping", "[distortion]")
 {
     SECTION("Signal is hard-clipped at the beginning")
     {
@@ -278,7 +278,7 @@ TEST_CASE("Basic windowed distortion applies hard clipping", "[distortion]")
     }
 }
 
-TEST_CASE("Basic windowed distortion with memory benchmark", "[.][distortion_benchmark][!benchmark]")
+TEST_CASE("Distortion benchmark", "[.][distortion_benchmark][!benchmark]")
 {
     static constexpr unsigned WindowSize{64};
     static constexpr float threshold{0.7};
